@@ -28,6 +28,9 @@ jobs:
         env:
           # push is switched on only if the Firebase secret exists
           VITE_PUSH_ENABLED: ${{ secrets.GOOGLE_SERVICES_JSON != '' && '1' || '0' }}
+          # the app compares this with the latest Release to offer an update
+          VITE_BUILD_NUMBER: ${{ github.run_number }}
+          VITE_GH_REPO: ${{ github.repository }}
 
       - name: Add Android platform if missing
         run: '[ -d android ] || npx cap add android'

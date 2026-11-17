@@ -5,6 +5,7 @@ import { LogOut, type LucideIcon } from 'lucide-react';
 import { useAuth } from '../auth';
 import { roleLabel } from '../types';
 import OfflineBar from './OfflineBar';
+import UpdateBanner from './UpdateBanner';
 import ThemeButton from './ThemeButton';
 import { clearUserCache, pendingCount } from '../lib/offline';
 
@@ -70,6 +71,7 @@ export default function Shell({ nav }: { nav: NavItem[] }) {
         </div>
       </header>
 
+      <UpdateBanner />
       <OfflineBar />
       <main className="flex-1 px-4 pb-28 pt-4">
         <Outlet key={tick} />

@@ -4,6 +4,7 @@ import { useAuth } from '../auth';
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabase } from '../lib/supabase';
 import { roleLabel, type Profile, type Role } from '../types';
 import { L, btn, card, inp } from '../ui';
+import { BUILD, canSelfUpdate, checkForUpdate } from '../lib/update';
 
 export default function Settings() {
   const { profile, session } = useAuth();
@@ -60,6 +61,7 @@ export default function Settings() {
         <button disabled={pwBusy} onClick={savePw} className={btn + ' w-full'}>{pwBusy ? 'جاري التغيير...' : 'تغيير'}</button>
       </div>
       {msg && <p className="text-sm text-brand">{msg}</p>}
+      <AppVersion />
       {profile?.is_owner && <Users />}
       {profile?.is_owner && <AuditLog />}
     </div>
@@ -220,6 +222,27 @@ function AuditLog() {
         </div>
       ))}
       {show && !rows.length && <p className="text-sm text-fg/50">مفيش عمليات مسجلة لسه.</p>}
+    </div>
+  );
+}
+
+function AppVersion() {
+  const [note, setNote] = useState('');
+  if (!canSelfUpdate) return null;
+  const check = async () => {
+    setNote('بنفحص...');
+    const u = await checkForUpdate();
+    if (u) {
+      window.dispatchEvent(new CustomEvent('prosmart:update', { detail: u }));
+      setNote(`في نسخة أحدث (${u.build}) — اضغط "حدّث الآن" فوق.`);
+    } else setNote('أنت على آخر نسخة ✓');
+  };
+  return (
+    <div className={card + ' space-y-2'}>
+      <h2 className="font-bold">نسخة التطبيق</h2>
+      <p className="text-sm text-fg/70">النسخة الحالية: {BUILD}</p>
+      <button onClick={check} className={btn + ' w-full'}>شوف في تحديث</button>
+      {note && <p className="text-sm text-brand">{note}</p>}
     </div>
   );
 }

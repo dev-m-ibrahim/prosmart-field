@@ -3,6 +3,9 @@ import { Pencil, Plus, ScanBarcode, Trash2 } from 'lucide-react';
 import { useAuth } from '../auth';
 import { supabase } from '../lib/supabase';
 import Scanner from '../components/Scanner';
+import CategoryPicker from '../components/CategoryPicker';
+import CategoryManager from '../components/CategoryManager';
+import { childrenOf, loadCats, pathOf, withDescendants, type Cat } from '../lib/categories';
 import { L, btn, card, inp } from '../ui';
 
 interface Bal {
@@ -12,6 +15,8 @@ interface Bal {
   barcode: string | null;
   brand?: string | null;
   category?: string | null;
+  category_id?: string | null;
+  category_path?: string | null;
   min_stock: number;
   balance: number;
 }
@@ -20,7 +25,9 @@ export default function Stock() {
   const [rows, setRows] = useState<Bal[]>([]);
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
-  const [cat, setCat] = useState('');
+  const [catId, setCatId] = useState<string | null>(null);
+  const [cats, setCats] = useState<Cat[]>([]);
+  const [manage, setManage] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const { profile } = useAuth();
   const canEdit = profile?.role === 'admin' || !!profile?.is_owner; // owner + admin only
@@ -38,28 +45,44 @@ export default function Stock() {
   const load = useCallback(async () => {
     const { data } = await supabase.from('stock_balance').select('*').order('name');
     setRows((data ?? []) as Bal[]);
+    setCats(await loadCats());
   }, []);
   useEffect(() => {
     load();
   }, [load]);
 
-  const cats: string[] = [...new Set<string>(rows.map((r) => String(r.category ?? '').trim()).filter(Boolean))].sort();
+  const ids = catId ? withDescendants(cats, catId) : null;
   const shown = rows.filter(
-    (r) => (!cat || (r.category ?? '').trim() === cat) && (r.name + (r.model ?? '') + (r.barcode ?? '') + (r.category ?? '')).toLowerCase().includes(q.toLowerCase()),
+    (r) => (!ids || (!!r.category_id && ids.has(r.category_id))) && (r.name + (r.model ?? '') + (r.barcode ?? '') + (r.category_path ?? r.category ?? '')).toLowerCase().includes(q.toLowerCase()),
   );
+  const chain = pathOf(cats, catId);
+  const chipRows: { parent: string | null; items: Cat[]; active: string | null }[] = [];
+  for (let i = 0; i <= chain.length; i++) {
+    const parent = i === 0 ? null : chain[i - 1].id;
+    const items = childrenOf(cats, parent);
+    if (!items.length) break;
+    chipRows.push({ parent, items, active: chain[i]?.id ?? null });
+  }
 
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold">المخزن</h1>
-        <button className={btn + ' flex items-center gap-1'} onClick={() => setOpen(!open)}>
-          <Plus size={16} />
-          استلام بضاعة
-        </button>
+        <div className="flex items-center gap-2">
+          {canEdit && (
+            <button className="rounded-xl border border-navy-600 px-3 py-2.5 text-sm" onClick={() => setManage(!manage)}>الفئات</button>
+          )}
+          <button className={btn + ' flex items-center gap-1'} onClick={() => setOpen(!open)}>
+            <Plus size={16} />
+            استلام بضاعة
+          </button>
+        </div>
       </div>
+      {manage && canEdit && <CategoryManager cats={cats} reload={load} />}
       {open && (
         <Receive
           cats={cats}
+          reloadCats={async () => setCats(await loadCats())}
           onDone={() => {
             setOpen(false);
             load();
@@ -67,16 +90,20 @@ export default function Stock() {
         />
       )}
       <input className={inp + ' mb-3'} placeholder="بحث بالاسم أو الموديل أو الباركود" value={q} onChange={(e) => setQ(e.target.value)} />
-      {cats.length > 0 && (
-        <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
-          {['', ...cats].map((c) => (
-            <button key={c || 'all'} onClick={() => setCat(c)}
-              className={`whitespace-nowrap rounded-full border px-3 py-1 text-sm ${cat === c ? 'border-brand bg-brand text-on-brand' : 'border-navy-600'}`}>
-              {c || 'الكل'}
-            </button>
-          ))}
+      {chipRows.map((row, i) => (
+        <div key={i} className="mb-2 flex gap-2 overflow-x-auto pb-1">
+          {[{ id: row.parent, name: 'الكل' }, ...row.items].map((c) => {
+            const isAll = c.id === row.parent;
+            const on = isAll ? row.active === null : row.active === c.id;
+            return (
+              <button key={c.id ?? 'all'} onClick={() => setCatId(c.id)}
+                className={`whitespace-nowrap rounded-full border px-3 py-1 text-sm ${on ? 'border-brand bg-brand text-on-brand' : 'border-navy-600'}`}>
+                {c.name}
+              </button>
+            );
+          })}
         </div>
-      )}
+      ))}
       {msg && <p className="mb-2 rounded-lg bg-red-500/15 px-3 py-2 text-sm text-red-200">{msg}</p>}
       <div className="space-y-2">
         {shown.map((r) => (
@@ -84,7 +111,7 @@ export default function Stock() {
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <b>{r.name}</b>
-                {r.category && <span className="ms-2 rounded-full bg-navy-700 px-2 py-0.5 text-xs">{r.category}</span>}
+                {(r.category_path || r.category) && <span className="ms-2 rounded-full bg-navy-700 px-2 py-0.5 text-xs">{r.category_path || r.category}</span>}
                 <div className="text-xs text-fg/60" dir="ltr">
                   {[r.model, r.barcode].filter(Boolean).join(' · ')}
                 </div>
@@ -106,7 +133,7 @@ export default function Stock() {
               </div>
             </div>
             {editing === r.product_id && (
-              <EditProduct row={r} cats={cats} onDone={() => { setEditing(null); load(); }} />
+              <EditProduct row={r} cats={cats} reloadCats={async () => setCats(await loadCats())} onDone={() => { setEditing(null); load(); }} />
             )}
           </div>
         ))}
@@ -116,9 +143,9 @@ export default function Stock() {
   );
 }
 
-const blank = { barcode: '', name: '', brand: '', model: '', category: '', track_serial: false, qty: 1, serials: '' };
+const blank = { barcode: '', name: '', brand: '', model: '', category_id: null as string | null, track_serial: false, qty: 1, serials: '' };
 
-function Receive({ onDone, cats = [] }: { onDone: () => void; cats?: string[] }) {
+function Receive({ onDone, cats, reloadCats }: { onDone: () => void; cats: Cat[]; reloadCats: () => void | Promise<void> }) {
   const [f, setF] = useState(blank);
   const [scan, setScan] = useState<'barcode' | 'serial' | null>(null);
   const [known, setKnown] = useState<string | null>(null);
@@ -132,7 +159,7 @@ function Receive({ onDone, cats = [] }: { onDone: () => void; cats?: string[] })
     const { data } = await supabase.from('products').select('*').eq('barcode', code).maybeSingle();
     if (data) {
       setKnown(data.id);
-      setF((x) => ({ ...x, barcode: code, name: data.name, brand: data.brand ?? '', model: data.model ?? '', category: data.category ?? '', track_serial: data.track_serial }));
+      setF((x) => ({ ...x, barcode: code, name: data.name, brand: data.brand ?? '', model: data.model ?? '', category_id: data.category_id ?? null, track_serial: data.track_serial }));
     } else {
       setKnown(null);
       setF((x) => ({ ...x, barcode: code }));
@@ -153,7 +180,7 @@ function Receive({ onDone, cats = [] }: { onDone: () => void; cats?: string[] })
     if (!pid) {
       const { data, error } = await supabase
         .from('products')
-        .insert({ name: f.name, brand: f.brand || null, model: f.model || null, category: f.category || null, barcode: f.barcode || null, track_serial: f.track_serial })
+        .insert({ name: f.name, brand: f.brand || null, model: f.model || null, category_id: f.category_id, barcode: f.barcode || null, track_serial: f.track_serial })
         .select('id')
         .single();
       if (error || !data) {
@@ -209,9 +236,8 @@ function Receive({ onDone, cats = [] }: { onDone: () => void; cats?: string[] })
           <input readOnly={!!known} dir="ltr" className={inp} value={f.model} onChange={set('model')} />
         </L>
       </div>
-      <L t="الفئة (كاميرا، انتركم، شبكات...)">
-        <input readOnly={!!known} list="cat-list" className={inp} value={f.category} onChange={set('category')} />
-        <datalist id="cat-list">{cats.map((c) => (<option key={c} value={c} />))}</datalist>
+      <L t="الفئة">
+        <CategoryPicker cats={cats} value={f.category_id} disabled={!!known} onChange={(id) => setF((x) => ({ ...x, category_id: id }))} onAdded={reloadCats} />
       </L>
       {!known && (
         <label className="flex items-center gap-2">
@@ -239,14 +265,14 @@ function Receive({ onDone, cats = [] }: { onDone: () => void; cats?: string[] })
   );
 }
 
-function EditProduct({ row, cats, onDone }: { row: Bal; cats: string[]; onDone: () => void }) {
-  const [f, setF] = useState({ name: row.name, brand: row.brand ?? '', model: row.model ?? '', category: row.category ?? '', barcode: row.barcode ?? '', min_stock: Number(row.min_stock ?? 0) });
+function EditProduct({ row, cats, reloadCats, onDone }: { row: Bal; cats: Cat[]; reloadCats: () => void | Promise<void>; onDone: () => void }) {
+  const [f, setF] = useState({ name: row.name, brand: row.brand ?? '', model: row.model ?? '', category_id: (row.category_id ?? null) as string | null, barcode: row.barcode ?? '', min_stock: Number(row.min_stock ?? 0) });
   const [err, setErr] = useState('');
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   const save = async (e: FormEvent) => {
     e.preventDefault();
     const { error } = await supabase.from('products').update({
-      name: f.name, brand: f.brand || null, model: f.model || null, category: f.category.trim() || null, barcode: f.barcode || null, min_stock: f.min_stock,
+      name: f.name, brand: f.brand || null, model: f.model || null, category_id: f.category_id, barcode: f.barcode || null, min_stock: f.min_stock,
     }).eq('id', row.product_id);
     if (error) return setErr(error.message);
     onDone();
@@ -259,8 +285,7 @@ function EditProduct({ row, cats, onDone }: { row: Bal; cats: string[]; onDone: 
         <L t="الموديل"><input dir="ltr" className={inp} value={f.model} onChange={set('model')} /></L>
       </div>
       <L t="الفئة">
-        <input list="cat-edit" className={inp} value={f.category} onChange={set('category')} />
-        <datalist id="cat-edit">{cats.map((c) => (<option key={c} value={c} />))}</datalist>
+        <CategoryPicker cats={cats} value={f.category_id} onChange={(id) => setF((x) => ({ ...x, category_id: id }))} onAdded={reloadCats} />
       </L>
       <div className="grid grid-cols-2 gap-2">
         <L t="الباركود / QR"><input dir="ltr" className={inp} value={f.barcode} onChange={set('barcode')} /></L>

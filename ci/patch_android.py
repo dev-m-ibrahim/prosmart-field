@@ -42,6 +42,7 @@ perms = [
     'android.permission.ACCESS_FINE_LOCATION',
     'android.permission.POST_NOTIFICATIONS',
     'android.permission.VIBRATE',
+    'android.permission.REQUEST_INSTALL_PACKAGES',  # in-app updater
 ]
 add = ''.join(f'    <uses-permission android:name="{p}" />\n' for p in perms if p not in t)
 if add:
@@ -53,7 +54,42 @@ meta = '''
 '''
 if 'default_notification_channel_id' not in t:
     t = re.sub(r'(<application[^>]*>)', r'\1' + meta, t, count=1)
+# FileProvider (the Capacitor template ships one; add it only if missing)
+if 'fileprovider' not in t:
+    prov = ('        <provider android:name="androidx.core.content.FileProvider" '
+            'android:authorities="${applicationId}.fileprovider" android:exported="false" '
+            'android:grantUriPermissions="true">\n'
+            '            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />\n'
+            '        </provider>\n')
+    t = t.replace('</application>', prov + '    </application>', 1)
 open(mf, 'w', encoding='utf-8').write(t)
+
+# file_paths: superset so the updater can share files from the cache dir
+os.makedirs(f'{RES}/xml', exist_ok=True)
+open(f'{RES}/xml/file_paths.xml', 'w').write(
+    '<?xml version="1.0" encoding="utf-8"?>\n'
+    '<paths xmlns:android="http://schemas.android.com/apk/res/android">\n'
+    '    <external-path name="my_images" path="." />\n'
+    '    <cache-path name="my_cache_images" path="." />\n'
+    '    <files-path name="my_files" path="." />\n'
+    '</paths>\n')
+
+# ---- 3b. in-app updater plugin (download APK + launch installer) ----
+mains = glob.glob('android/app/src/main/java/**/MainActivity.java', recursive=True)
+assert mains, 'MainActivity.java not found'
+jdir = os.path.dirname(mains[0])
+shutil.copy('ci/ApkInstallerPlugin.java', f'{jdir}/ApkInstallerPlugin.java')
+open(mains[0], 'w').write(
+    'package com.prosmart.field;\n\n'
+    'import android.os.Bundle;\n'
+    'import com.getcapacitor.BridgeActivity;\n\n'
+    'public class MainActivity extends BridgeActivity {\n'
+    '    @Override\n'
+    '    public void onCreate(Bundle savedInstanceState) {\n'
+    '        registerPlugin(ApkInstallerPlugin.class);\n'
+    '        super.onCreate(savedInstanceState);\n'
+    '    }\n'
+    '}\n')
 
 # ---- 4. versionCode = CI run number so every build can update the previous one ----
 vc = os.environ.get('RUN_NUMBER', '1')
