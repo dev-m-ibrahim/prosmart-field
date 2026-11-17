@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { Bell, ClipboardList, FileText, Package, PackageMinus, Settings as Cog, Wrench } from 'lucide-react';
+import { Bell, ClipboardList, FileText, Package, PackageMinus, Settings as Cog, Undo2, Wrench } from 'lucide-react';
 import { useAuth } from './auth';
 import { homePath, type Role } from './types';
 import Shell, { type NavItem } from './components/Shell';
@@ -11,6 +11,7 @@ import Reports from './pages/admin/Reports';
 import Inbox from './pages/Inbox';
 import InboxItem from './pages/InboxItem';
 import Issue from './pages/Issue';
+import Returns from './pages/Returns';
 import PushBridge from './components/PushBridge';
 import Settings from './pages/Settings';
 import Orders from './pages/admin/Orders';
@@ -33,13 +34,14 @@ const techNav: NavItem[] = [
 const storeNav: NavItem[] = [
   { to: '/store', label: 'المخزن', icon: Package, end: true },
   { to: '/store/issue', label: 'صرف', icon: PackageMinus },
+  { to: '/store/returns', label: 'المرتجعات', icon: Undo2 },
   { to: '/store/inbox', label: 'التنبيهات', icon: Bell },
   { to: '/store/settings', label: 'الإعدادات', icon: Cog },
 ];
 
 function Splash() {
   return (
-    <div className="flex min-h-screen items-center justify-center text-white/70">جاري التحميل...</div>
+    <div className="flex min-h-screen items-center justify-center text-fg/70">جاري التحميل...</div>
   );
 }
 
@@ -107,6 +109,7 @@ export default function App() {
           }
         >
           <Route index element={<Stock />} />
+          <Route path="returns" element={<Returns />} />
           <Route path="issue" element={<Issue />} />
           <Route path="inbox" element={<Inbox />} />
           <Route path="inbox/:nid" element={<InboxItem />} />

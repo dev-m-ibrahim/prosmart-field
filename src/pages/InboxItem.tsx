@@ -54,12 +54,12 @@ export default function InboxItem() {
         <ArrowRight size={16} /> كل التنبيهات
       </Link>
       {err && <p className="rounded-lg bg-red-500/15 px-3 py-2 text-sm text-red-200">{err}</p>}
-      {!m && !err && <p className="text-white/60">جاري التحميل...</p>}
+      {!m && !err && <p className="text-fg/60">جاري التحميل...</p>}
       {m && (
         <div className={card + ' space-y-3'}>
           <h1 className="text-lg font-bold">{m.title}</h1>
-          <div className="text-xs text-white/50">{fmt(m.created_at)}</div>
-          {m.body && <p className="whitespace-pre-wrap text-[15px] leading-7 text-white/90">{m.body}</p>}
+          <div className="text-xs text-fg/50">{fmt(m.created_at)}</div>
+          {m.body && <p className="whitespace-pre-wrap text-[15px] leading-7 text-fg/90">{m.body}</p>}
           {orderLink && (
             <Link to={orderLink} className={btn + ' flex w-full items-center justify-center gap-2'}>
               <ClipboardList size={18} /> فتح أمر الشغل

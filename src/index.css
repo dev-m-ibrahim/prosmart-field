@@ -8,6 +8,8 @@
   --color-navy-600: #17608f;
   --color-brand: #00e5ff;
   --color-brand-dark: #00b8cc;
+  --color-fg: #ffffff;
+  --color-on-brand: #00233a;
   --font-sans: 'Cairo', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
 }
 
@@ -15,10 +17,41 @@ html, body, #root { min-height: 100%; }
 
 body {
   background: var(--color-navy-800);
-  color: #fff;
+  color: var(--color-fg);
   font-family: var(--font-sans);
   padding-top: env(safe-area-inset-top, 0px);
   -webkit-tap-highlight-color: transparent;
 }
 
 input, button { font-family: inherit; }
+
+/* ───── themes: blue (default, above) / dark / light — switched with data-theme on <html> ───── */
+:root[data-theme='dark'] {
+  --color-navy-950: #04070a;
+  --color-navy-900: #141b24;
+  --color-navy-800: #0b0f14;
+  --color-navy-700: #243040;
+  --color-navy-600: #36465a;
+  --color-brand: #00e5ff;
+  --color-brand-dark: #00b8cc;
+  --color-fg: #e8eef5;
+  --color-on-brand: #04202a;
+  color-scheme: dark;
+}
+:root[data-theme='light'] {
+  --color-navy-950: #0f172a;
+  --color-navy-900: #ffffff;
+  --color-navy-800: #eef2f7;
+  --color-navy-700: #d8e0eb;
+  --color-navy-600: #b6c3d4;
+  --color-brand: #0891b2;
+  --color-brand-dark: #0e7490;
+  --color-fg: #0f172a;
+  --color-on-brand: #ffffff;
+  /* light tints used for status text on dark backgrounds -> darker, readable on white */
+  --color-red-200: #b91c1c;
+  --color-red-300: #dc2626;
+  --color-amber-200: #b45309;
+  --color-green-300: #15803d;
+  color-scheme: light;
+}

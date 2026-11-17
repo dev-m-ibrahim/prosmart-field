@@ -1,3 +1,4 @@
+import ThemeButton from '../components/ThemeButton';
 import { useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
@@ -24,6 +25,7 @@ export default function Login() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6 py-8">
+      <div className="mb-2 flex justify-end"><ThemeButton /></div>
       <img src="./logo.jpg" alt="Pro Smart" className="mx-auto mb-6 max-h-64 w-auto" />
 
       <form onSubmit={submit} className="space-y-3">
@@ -52,7 +54,7 @@ export default function Login() {
         <button
           type="submit"
           disabled={busy}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 font-bold text-navy-950 active:bg-brand-dark disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 font-bold text-on-brand active:bg-brand-dark disabled:opacity-60"
         >
           <LogIn size={18} />
           {busy ? 'جاري الدخول...' : 'تسجيل الدخول'}

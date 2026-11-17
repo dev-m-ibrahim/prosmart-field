@@ -101,10 +101,25 @@ function Users() {
             <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={u.is_active} onChange={(e) => upd(u.id, { is_active: e.target.checked })} />نشط</label>
             <button onClick={() => resetPw(u)} className="rounded-lg border border-navy-600 px-2 py-1 text-xs">باسورد</button>
           </div>
+          {u.role === 'admin' && (
+            <label className="flex w-full items-center gap-2 text-xs">
+              اللقب:
+              <select className="rounded-lg border border-navy-600 bg-navy-900 px-2 py-1" value={u.job_title ?? ''} onChange={(e) => upd(u.id, { job_title: e.target.value || null })}>
+                <option value="">إداري</option>
+                <option value="مهندس">مهندس</option>
+              </select>
+            </label>
+          )}
           {me?.is_owner && u.role === 'admin' && !u.is_owner && (
             <label className="flex w-full items-center gap-1 text-xs text-amber-200">
               <input type="checkbox" checked={!!u.can_manage_orders} onChange={(e) => upd(u.id, { can_manage_orders: e.target.checked })} />
               تعديل/حذف أوامر الشغل
+            </label>
+          )}
+          {me?.is_owner && !u.is_owner && (
+            <label className="flex w-full items-center gap-1 text-xs text-amber-200">
+              <input type="checkbox" checked={u.can_whatsapp !== false} onChange={(e) => upd(u.id, { can_whatsapp: e.target.checked })} />
+              زر واتساب تأكيد الميعاد
             </label>
           )}
         </div>
@@ -114,7 +129,7 @@ function Users() {
 }
 
 function AddUser({ onDone }: { onDone: () => void }) {
-  const blank = { name: '', phone: '', username: '', password: '', role: 'technician' as Role };
+  const blank = { name: '', phone: '', username: '', password: '', role: 'technician' as Role | 'engineer' };
   const [open, setOpen] = useState(false);
   const [f, setF] = useState(blank);
   const [msg, setMsg] = useState('');
@@ -135,7 +150,7 @@ function AddUser({ onDone }: { onDone: () => void }) {
       setBusy(false);
       return;
     }
-    const { error: e2 } = await supabase.from('profiles').update({ role: f.role, is_active: true, full_name: f.name, phone: f.phone || null }).eq('id', data.user.id);
+    const { error: e2 } = await supabase.from('profiles').update({ role: f.role === 'engineer' ? 'admin' : f.role, job_title: f.role === 'engineer' ? 'مهندس' : null, is_active: true, full_name: f.name, phone: f.phone || null }).eq('id', data.user.id);
     setBusy(false);
     if (e2) return setMsg(e2.message);
     setMsg('تم إنشاء الحساب ✓ — اليوزر: ' + f.username);
@@ -156,6 +171,7 @@ function AddUser({ onDone }: { onDone: () => void }) {
           <input required minLength={8} placeholder="الباسورد (8 على الأقل)" dir="ltr" className={inp} value={f.password} onChange={set('password')} />
           <select className={inp} value={f.role} onChange={set('role')}>
             {(Object.keys(roleLabel) as Role[]).map((r) => (<option key={r} value={r}>{roleLabel[r]}</option>))}
+            <option value="engineer">مهندس (بصلاحيات الإداري)</option>
           </select>
           {msg && <p className="text-sm text-brand">{msg}</p>}
           <button disabled={busy} className={btn + ' w-full'}>{busy ? 'جاري الإنشاء...' : 'إنشاء الحساب'}</button>
@@ -187,23 +203,23 @@ function AuditLog() {
           <button className="w-full text-start" onClick={() => setOpen(open === r.id ? null : r.id)}>
             <div className="flex justify-between gap-2">
               <b>{actLabel[r.action] ?? r.action}</b>
-              <span className="whitespace-nowrap text-xs text-white/50">{new Date(r.at).toLocaleString('ar-EG')}</span>
+              <span className="whitespace-nowrap text-xs text-fg/50">{new Date(r.at).toLocaleString('ar-EG')}</span>
             </div>
-            <div className="text-white/80">{r.summary}</div>
-            <div className="text-xs text-white/50">بواسطة: {r.user_name ?? 'النظام'}</div>
+            <div className="text-fg/80">{r.summary}</div>
+            <div className="text-xs text-fg/50">بواسطة: {r.user_name ?? 'النظام'}</div>
           </button>
           {open === r.id && r.details && (
             <div className="mt-2 space-y-1 border-t border-navy-700 pt-2 text-xs">
               {r.action === 'order_delete'
-                ? <p className="text-white/70">بيانات الأمر قبل الحذف: {String((r.details as Record<string, unknown>).client_name ?? '')} · {String((r.details as Record<string, unknown>).location_text ?? '')}</p>
+                ? <p className="text-fg/70">بيانات الأمر قبل الحذف: {String((r.details as Record<string, unknown>).client_name ?? '')} · {String((r.details as Record<string, unknown>).location_text ?? '')}</p>
                 : Object.entries(r.details).map(([k, v]) => (
-                    <p key={k}><b>{k}:</b> <span className="text-white/60 line-through">{fmtv((v as unknown[])[0])}</span> ← {fmtv((v as unknown[])[1])}</p>
+                    <p key={k}><b>{k}:</b> <span className="text-fg/60 line-through">{fmtv((v as unknown[])[0])}</span> ← {fmtv((v as unknown[])[1])}</p>
                   ))}
             </div>
           )}
         </div>
       ))}
-      {show && !rows.length && <p className="text-sm text-white/50">مفيش عمليات مسجلة لسه.</p>}
+      {show && !rows.length && <p className="text-sm text-fg/50">مفيش عمليات مسجلة لسه.</p>}
     </div>
   );
 }

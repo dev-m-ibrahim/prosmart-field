@@ -7,7 +7,7 @@ import { btn, card, inp } from '../ui';
 interface Bal { product_id: string; name: string; model: string | null; barcode: string | null; balance: number }
 interface Ord { id: string; order_no: number; client_name: string; status: string }
 interface Line { pid: string; name: string; qty: number; items: { id: string; sn: string }[] }
-interface Out { quantity: number; products: { name: string } | null; stock_items: { serial_number: string } | null }
+interface Out { name: string; issued: number; installed: number; returned: number }
 
 // Issue stock to a work order (storekeeper / admin).
 export default function Issue() {
@@ -38,8 +38,8 @@ export default function Issue() {
 
   const loadIssued = useCallback(async () => {
     if (!orderId) return setIssued([]);
-    const { data } = await supabase.from('stock_movements').select('quantity,products(name),stock_items(serial_number)').eq('work_order_id', orderId).eq('type', 'out');
-    setIssued((data ?? []) as unknown as Out[]);
+    const { data } = await supabase.rpc('order_stock_lines', { wo: orderId });
+    setIssued((data ?? []) as Out[]);
   }, [orderId]);
   useEffect(() => {
     loadIssued();
@@ -51,12 +51,13 @@ export default function Issue() {
     const ts = !!p?.track_serial;
     setTracked(ts);
     if (ts) {
-      const [{ data: items }, { data: outs }] = await Promise.all([
+      const [{ data: items }, { data: mv }] = await Promise.all([
         supabase.from('stock_items').select('id,serial_number').eq('product_id', b.product_id),
-        supabase.from('stock_movements').select('stock_item_id').eq('product_id', b.product_id).eq('type', 'out'),
+        supabase.from('stock_movements').select('stock_item_id,type').eq('product_id', b.product_id).not('stock_item_id', 'is', null),
       ]);
-      const gone = new Set((outs ?? []).map((o) => o.stock_item_id));
-      setFree((items ?? []).filter((i) => !gone.has(i.id)).map((i) => ({ id: i.id, sn: i.serial_number })));
+      const net = new Map<string, number>();
+      (mv ?? []).forEach((m) => net.set(m.stock_item_id, (net.get(m.stock_item_id) ?? 0) + (String(m.type) === 'out' ? -1 : 1)));
+      setFree((items ?? []).filter((i) => (net.get(i.id) ?? 0) > 0).map((i) => ({ id: i.id, sn: i.serial_number })));
     }
   };
 
@@ -122,13 +123,13 @@ export default function Issue() {
         </div>
         {shown.map((r) => (
           <button key={r.product_id} onClick={() => pick(r)} className="flex w-full items-center justify-between rounded-xl bg-navy-800 px-3 py-2 text-start">
-            <span>{r.name} <span className="text-xs text-white/50" dir="ltr">{r.model}</span></span>
+            <span>{r.name} <span className="text-xs text-fg/50" dir="ltr">{r.model}</span></span>
             <b className="text-brand">{Number(r.balance)}</b>
           </button>
         ))}
         {picked && (
           <div className="space-y-2 rounded-xl border border-brand/50 p-3">
-            <div className="flex justify-between"><b>{picked.name}</b><span className="text-sm text-white/60">الرصيد: {Number(picked.balance)}</span></div>
+            <div className="flex justify-between"><b>{picked.name}</b><span className="text-sm text-fg/60">الرصيد: {Number(picked.balance)}</span></div>
             {tracked ? (
               <div className="max-h-40 space-y-1 overflow-auto">
                 {free.map((f) => (
@@ -137,7 +138,7 @@ export default function Issue() {
                     {f.sn}
                   </label>
                 ))}
-                {!free.length && <p className="text-sm text-white/50">مفيش سيريالات متاحة.</p>}
+                {!free.length && <p className="text-sm text-fg/50">مفيش سيريالات متاحة.</p>}
               </div>
             ) : (
               <input type="number" min={1} step="any" className={inp} value={qty} onChange={(e) => setQty(Number(e.target.value))} />
@@ -152,7 +153,7 @@ export default function Issue() {
           <h2 className="font-bold">هيتصرف دلوقتي</h2>
           {cart.map((l) => (
             <div key={l.pid} className="flex items-center justify-between rounded-xl bg-navy-800 px-3 py-2 text-sm">
-              <span>{l.name} × {l.qty}{l.items.length ? <span className="text-xs text-white/50" dir="ltr"> ({l.items.map((i) => i.sn).join(', ')})</span> : null}</span>
+              <span>{l.name} × {l.qty}{l.items.length ? <span className="text-xs text-fg/50" dir="ltr"> ({l.items.map((i) => i.sn).join(', ')})</span> : null}</span>
               <button onClick={() => setCart(cart.filter((c) => c.pid !== l.pid))} className="text-red-300"><X size={16} /></button>
             </div>
           ))}
@@ -164,8 +165,16 @@ export default function Issue() {
 
       {orderId && issued.length > 0 && (
         <div className={card + ' space-y-1'}>
-          <h2 className="font-bold">اللي اتصرف قبل كده على الأمر</h2>
-          {issued.map((o, i) => (<div key={i} className="text-sm text-white/80">{o.products?.name} × {Number(o.quantity)}{o.stock_items ? ` — SN: ${o.stock_items.serial_number}` : ''}</div>))}
+          <h2 className="font-bold">خامات الأمر (مصروف / مركّب / مرتجع)</h2>
+          {issued.map((o, i) => {
+            const rest = Number(o.issued) - Number(o.installed) - Number(o.returned);
+            return (
+              <div key={i} className="text-sm text-fg/80">
+                {o.name}: {Number(o.issued)} / {Number(o.installed)} / {Number(o.returned)}
+                {rest > 0 && <span className="text-amber-200"> · على ذمة الفني {rest}</span>}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

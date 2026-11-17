@@ -34,11 +34,11 @@ export default function TechOrders() {
               </b>
               <Badge s={r.status} />
             </div>
-            <div className="mt-1 text-sm text-white/60">{r.location_text}</div>
-            <div className="text-sm text-white/60">{fmt(r.scheduled_at)}</div>
+            <div className="mt-1 text-sm text-fg/60">{r.location_text}</div>
+            <div className="text-sm text-fg/60">{fmt(r.scheduled_at)}</div>
           </Link>
         ))}
-        {!rows.length && <p className="text-white/50">مفيش أوامر شغل ليك دلوقتي.</p>}
+        {!rows.length && <p className="text-fg/50">مفيش أوامر شغل ليك دلوقتي.</p>}
       </div>
     </div>
   );

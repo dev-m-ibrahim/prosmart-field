@@ -6,7 +6,9 @@ export interface Profile {
   phone: string | null;
   role: Role;
   is_active: boolean;
+  job_title?: string | null; // cosmetic title, e.g. مهندس (an engineer is an admin with this title)
   is_owner?: boolean; // the owner: manages users/roles, sees the audit log
+  can_whatsapp?: boolean; // WhatsApp confirm button (the owner can switch it off per user)
   can_manage_orders?: boolean; // may edit / delete work orders (set by the owner admin)
 }
 

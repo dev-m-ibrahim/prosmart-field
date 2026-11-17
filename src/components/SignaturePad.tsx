@@ -56,11 +56,11 @@ export default function SignaturePad({ orderId, onSaved }: { orderId: string; on
 
   return (
     <div className="space-y-2">
-      <canvas ref={cv} width={600} height={220} style={{ touchAction: 'none' }} className="w-full rounded-xl bg-white"
+      <canvas ref={cv} width={600} height={220} style={{ touchAction: 'none', background: '#fff' }} className="w-full rounded-xl"
         onPointerDown={down} onPointerMove={move} onPointerUp={() => (drawing.current = false)} />
       <div className="flex gap-2">
         <button type="button" onClick={clear} className="flex-1 rounded-xl border border-navy-600 py-2 text-sm">مسح</button>
-        <button type="button" disabled={!dirty || busy} onClick={save} className="flex-1 rounded-xl bg-brand py-2 text-sm font-bold text-navy-950 disabled:opacity-50">
+        <button type="button" disabled={!dirty || busy} onClick={save} className="flex-1 rounded-xl bg-brand py-2 text-sm font-bold text-on-brand disabled:opacity-50">
           {busy ? 'جاري...' : 'اعتماد التوقيع'}
         </button>
       </div>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { MessageCircle, Pencil, Plus, Trash2 } from 'lucide-react';
+import { waLink } from '../../lib/phone';
 import { useAuth } from '../../auth';
 import { supabase } from '../../lib/supabase';
 import Photos from '../../components/Photos';
@@ -97,6 +98,14 @@ export default function Orders() {
               </b>
               <Badge s={r.status} />
             </div>
+            {r.client_phone && profile?.can_whatsapp !== false && (
+              <button
+                onClick={() => window.open(waLink(r.client_phone!, `أهلاً أستاذ/ة ${r.client_name} 👋\nمعاك ${profile?.full_name || 'الإدارة'} من شركة PROSMART.\nبنأكد معاد أمر الشغل #${r.order_no} يوم ${fmt(r.scheduled_at)}.\nيرجى تأكيد الميعاد، شكراً لحضرتك 🙏`), '_blank')}
+                className="mt-2 flex items-center gap-1 rounded-lg border border-green-500/50 px-2.5 py-1 text-xs text-green-200"
+              >
+                <MessageCircle size={13} /> تأكيد الميعاد (واتساب)
+              </button>
+            )}
             {canManage && (
               <div className="mt-2 flex gap-2 text-xs">
                 <button onClick={() => setEditing(editing === r.id ? null : r.id)} className="flex items-center gap-1 rounded-lg border border-navy-600 px-2.5 py-1">
@@ -116,8 +125,8 @@ export default function Orders() {
                 }}
               />
             )}
-            <div className="mt-1 text-sm text-white/60">{r.location_text}</div>
-            <div className="text-sm text-white/60">{fmt(r.scheduled_at)}</div>
+            <div className="mt-1 text-sm text-fg/60">{r.location_text}</div>
+            <div className="text-sm text-fg/60">{fmt(r.scheduled_at)}</div>
             <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
               {r.work_order_techs.map((t) => (
                 <span key={t.tech_id} className="rounded-lg bg-navy-700 px-2 py-1">
@@ -137,10 +146,10 @@ export default function Orders() {
                         <span>{t.title} · {who} · {t.bonus} ج</span>
                         <span className="whitespace-nowrap text-xs text-brand">{taskLabel[t.status]}</span>
                       </div>
-                      {t.tech_note && <p className="text-xs text-white/60">{t.tech_note}</p>}
+                      {t.tech_note && <p className="text-xs text-fg/60">{t.tech_note}</p>}
                       {t.status === 'done' && (
                         <div className="mt-1 flex gap-2">
-                          <button onClick={() => review(t.id, 'approved')} className="rounded-lg bg-brand px-3 py-1 text-xs font-bold text-navy-950">موافقة</button>
+                          <button onClick={() => review(t.id, 'approved')} className="rounded-lg bg-brand px-3 py-1 text-xs font-bold text-on-brand">موافقة</button>
                           <button onClick={() => review(t.id, 'rejected')} className="rounded-lg border border-red-300/50 px-3 py-1 text-xs text-red-200">رفض</button>
                         </div>
                       )}
@@ -155,7 +164,7 @@ export default function Orders() {
             <OrderDetails order={r} />
           </div>
         ))}
-        {!rows.length && <p className="text-white/50">مفيش أوامر لسه.</p>}
+        {!rows.length && <p className="text-fg/50">مفيش أوامر لسه.</p>}
       </div>
     </div>
   );
@@ -254,7 +263,7 @@ function NewOrder({ onDone }: { onDone: () => void }) {
         <textarea rows={3} className={inp} value={f.details} onChange={set('details')} />
       </L>
       <div className="space-y-1">
-        <span className="text-sm text-white/70">الفنيين</span>
+        <span className="text-sm text-fg/70">الفنيين</span>
         {techs.map((t) => (
           <div key={t.id} className="flex items-center justify-between rounded-xl bg-navy-800 px-3 py-2">
             <label className="flex items-center gap-2">
@@ -269,10 +278,10 @@ function NewOrder({ onDone }: { onDone: () => void }) {
             )}
           </div>
         ))}
-        {!techs.length && <p className="text-sm text-white/50">مفيش فنيين مسجلين لسه.</p>}
+        {!techs.length && <p className="text-sm text-fg/50">مفيش فنيين مسجلين لسه.</p>}
       </div>
       <div className="space-y-2">
-        <span className="text-sm text-white/70">المهام (مهمة وبونص لكل فني)</span>
+        <span className="text-sm text-fg/70">المهام (مهمة وبونص لكل فني)</span>
         {tasks.map((t, i) => (
           <div key={i} className="grid grid-cols-6 gap-2 rounded-xl bg-navy-800 p-2">
             <input placeholder="المهمة (سمارت، كاميرات...)" className={inp + ' col-span-6'} value={t.title} onChange={(e) => upd(i, 'title', e.target.value)} />

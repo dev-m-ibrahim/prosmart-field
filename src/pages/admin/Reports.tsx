@@ -107,8 +107,8 @@ export default function Reports() {
     <div className="space-y-4">
       <h1 className="text-xl font-bold">التقارير</h1>
       <div className="grid grid-cols-2 gap-3">
-        <label className="text-sm text-white/70">من<input type="date" className={inp} value={from} onChange={(e) => setFrom(e.target.value)} /></label>
-        <label className="text-sm text-white/70">إلى<input type="date" className={inp} value={to} onChange={(e) => setTo(e.target.value)} /></label>
+        <label className="text-sm text-fg/70">من<input type="date" className={inp} value={from} onChange={(e) => setFrom(e.target.value)} /></label>
+        <label className="text-sm text-fg/70">إلى<input type="date" className={inp} value={to} onChange={(e) => setTo(e.target.value)} /></label>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -134,12 +134,12 @@ export default function Reports() {
         {techs.map((t, i) => (
           <div key={t.tech_id} className="flex items-center justify-between border-b border-navy-700 py-2 text-sm last:border-0">
             <span>{i === 0 && t.orders_done > 0 ? '🏆 ' : `${i + 1}. `}{t.full_name}</span>
-            <span className="text-xs text-white/70">
+            <span className="text-xs text-fg/70">
               {t.orders_done}/{t.orders_assigned} أوامر · {t.tasks_approved} مهمة · <b className="text-brand">{Number(t.bonus_total)} ج</b>
             </span>
           </div>
         ))}
-        {!techs.length && <p className="text-sm text-white/50">مفيش بيانات.</p>}
+        {!techs.length && <p className="text-sm text-fg/50">مفيش بيانات.</p>}
         <p className="mt-2 text-sm">إجمالي البونصات المعتمدة: <b className="text-brand">{totalBonus} ج</b></p>
       </div>
 
@@ -155,7 +155,7 @@ export default function Reports() {
             </div>
           </div>
         ))}
-        {!sites.length && <p className="text-sm text-white/50">لسه مفيش مهام معتمدة.</p>}
+        {!sites.length && <p className="text-sm text-fg/50">لسه مفيش مهام معتمدة.</p>}
       </div>
     </div>
   );

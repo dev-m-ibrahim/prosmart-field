@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../auth';
 import Photos from '../components/Photos';
 import SignaturePad from '../components/SignaturePad';
+import Materials from '../components/Materials';
 import { Badge, L, btn, card, fmt, inp, taskLabel } from '../ui';
 
 interface Order {
@@ -188,7 +189,7 @@ export default function TechOrder() {
   const setCred = (i: number, k: keyof Cred, v: string) =>
     setCreds(creds.map((c, j) => (j === i ? { ...c, [k]: v } : c)));
 
-  if (!o) return <p className="text-white/60">جاري التحميل...</p>;
+  if (!o) return <p className="text-fg/60">جاري التحميل...</p>;
 
   return (
     <div className="space-y-4">
@@ -199,8 +200,8 @@ export default function TechOrder() {
           </b>
           <Badge s={o.status} />
         </div>
-        <div className="text-sm text-white/70">{fmt(o.scheduled_at)}</div>
-        <div className="text-sm text-white/70">{o.location_text}</div>
+        <div className="text-sm text-fg/70">{fmt(o.scheduled_at)}</div>
+        <div className="text-sm text-fg/70">{o.location_text}</div>
         {o.details && <p className="whitespace-pre-wrap text-sm">{o.details}</p>}
         <div className="flex gap-2 pt-1">
           <a href={`tel:${o.client_phone}`} className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-navy-600 py-2 text-sm">
@@ -209,6 +210,11 @@ export default function TechOrder() {
           <button type="button" onClick={onTheWay} className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-green-500/50 py-2 text-sm text-green-300">
             <MessageCircle size={16} /> في الطريق (واتساب)
           </button>
+          {profile?.can_whatsapp !== false && (
+            <button type="button" onClick={() => window.open(waLink(o.client_phone, `أهلاً أستاذ/ة ${o.client_name} 👋\nمعاك ${profile?.full_name || 'الفني'} من شركة PROSMART.\nبنأكد معاد أمر الشغل #${o.order_no} يوم ${fmt(o.scheduled_at)}.\nيرجى تأكيد الميعاد، شكراً لحضرتك 🙏`), '_blank')} className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-green-500/50 py-2 text-sm text-green-200">
+              <MessageCircle size={16} /> تأكيد الميعاد
+            </button>
+          )}
           {o.location_url && (
             <a href={o.location_url} target="_blank" rel="noreferrer" className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-navy-600 py-2 text-sm">
               <MapPin size={16} /> الموقع
@@ -232,6 +238,8 @@ export default function TechOrder() {
       {me?.arrived_at && <p className="text-sm text-brand">وقت الوصول: {fmt(me.arrived_at)}</p>}
       {me?.departed_at && <p className="text-sm text-brand">وقت الانصراف: {fmt(me.departed_at)}</p>}
 
+      {me?.arrived_at && <Materials orderId={id!} />}
+
       {tasks.length > 0 && (
         <div className={card + ' space-y-2'}>
           <h2 className="font-bold">مهامي</h2>
@@ -247,7 +255,7 @@ export default function TechOrder() {
                   <button onClick={() => doTask(t.id)} className={btn + ' w-full'}>تمت المهمة</button>
                 </div>
               )}
-              {t.tech_note && t.status !== 'pending' && <p className="mt-1 text-xs text-white/60">{t.tech_note}</p>}
+              {t.tech_note && t.status !== 'pending' && <p className="mt-1 text-xs text-fg/60">{t.tech_note}</p>}
             </div>
           ))}
         </div>
@@ -274,7 +282,7 @@ export default function TechOrder() {
           </div>
 
           <div className="space-y-2">
-            <span className="text-sm text-white/70">باسوردات و IP</span>
+            <span className="text-sm text-fg/70">باسوردات و IP</span>
             {creds.map((c, i) => (
               <div key={c.id ?? i} className="grid grid-cols-2 gap-2 rounded-xl bg-navy-800 p-2">
                 <select disabled={!!c.id} className={inp} value={c.kind} onChange={(e) => setCred(i, 'kind', e.target.value)}>
@@ -304,7 +312,7 @@ export default function TechOrder() {
             <textarea rows={2} placeholder="إيه المتبقي؟" className={inp} value={r.followup_notes} onChange={(e) => setR({ ...r, followup_notes: e.target.value })} />
           )}
           <div className="space-y-1">
-            <span className="text-sm text-white/70">توقيع العميل {sig && '✓'}</span>
+            <span className="text-sm text-fg/70">توقيع العميل {sig && '✓'}</span>
             <SignaturePad orderId={o.id} onSaved={setSig} />
           </div>
           {msg && <p className="text-sm text-brand">{msg}</p>}

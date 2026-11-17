@@ -39,12 +39,12 @@ export default function Inbox() {
           <Link key={i.notification_id} to={`${base}/inbox/${i.notification_id}`} className={card + ' block w-full text-start active:bg-navy-700 ' + (i.read_at ? 'opacity-60' : 'border-brand/60')}>
             <div className="flex justify-between gap-2">
               <b>{!i.read_at && '● '}{i.notifications?.title}</b>
-              <span className="whitespace-nowrap text-xs text-white/50">{i.notifications && fmt(i.notifications.created_at)}</span>
+              <span className="whitespace-nowrap text-xs text-fg/50">{i.notifications && fmt(i.notifications.created_at)}</span>
             </div>
-            {i.notifications?.body && <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-sm text-white/80">{i.notifications.body}</p>}
+            {i.notifications?.body && <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-sm text-fg/80">{i.notifications.body}</p>}
           </Link>
         ))}
-        {!items.length && <p className="text-white/50">مفيش تنبيهات.</p>}
+        {!items.length && <p className="text-fg/50">مفيش تنبيهات.</p>}
       </div>
     </div>
   );
@@ -77,7 +77,7 @@ function Compose({ onSent }: { onSent: () => void }) {
       <L t="عنوان الرسالة"><input required className={inp} value={title} onChange={(e) => setTitle(e.target.value)} /></L>
       <L t="نص الرسالة"><textarea rows={3} className={inp} value={body} onChange={(e) => setBody(e.target.value)} /></L>
       <div className="space-y-1">
-        <div className="flex justify-between text-sm text-white/70">
+        <div className="flex justify-between text-sm text-fg/70">
           <span>المستلمين</span>
           <button type="button" className="text-brand" onClick={() => setSel(sel.length === people.length ? [] : people.map((p) => p.id))}>الكل</button>
         </div>

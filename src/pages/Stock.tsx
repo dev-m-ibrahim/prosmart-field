@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Plus, ScanBarcode } from 'lucide-react';
+import { Pencil, Plus, ScanBarcode, Trash2 } from 'lucide-react';
+import { useAuth } from '../auth';
 import { supabase } from '../lib/supabase';
 import Scanner from '../components/Scanner';
 import { L, btn, card, inp } from '../ui';
@@ -9,6 +10,8 @@ interface Bal {
   name: string;
   model: string | null;
   barcode: string | null;
+  brand?: string | null;
+  category?: string | null;
   min_stock: number;
   balance: number;
 }
@@ -17,6 +20,20 @@ export default function Stock() {
   const [rows, setRows] = useState<Bal[]>([]);
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
+  const [cat, setCat] = useState('');
+  const [editing, setEditing] = useState<string | null>(null);
+  const { profile } = useAuth();
+  const canEdit = profile?.role === 'admin' || !!profile?.is_owner; // owner + admin only
+  const [msg, setMsg] = useState('');
+  const remove = async (r: Bal) => {
+    if (!confirm(`حذف "${r.name}" نهائيًا من المخزن؟`)) return;
+    const { error } = await supabase.from('products').delete().eq('id', r.product_id);
+    if (error) setMsg(error.code === '23503' ? 'المنتج عليه حركات مخزون، مينفعش يتحذف.' : error.message);
+    else {
+      setMsg('');
+      load();
+    }
+  };
 
   const load = useCallback(async () => {
     const { data } = await supabase.from('stock_balance').select('*').order('name');
@@ -26,8 +43,9 @@ export default function Stock() {
     load();
   }, [load]);
 
-  const shown = rows.filter((r) =>
-    (r.name + (r.model ?? '') + (r.barcode ?? '')).toLowerCase().includes(q.toLowerCase()),
+  const cats: string[] = [...new Set<string>(rows.map((r) => String(r.category ?? '').trim()).filter(Boolean))].sort();
+  const shown = rows.filter(
+    (r) => (!cat || (r.category ?? '').trim() === cat) && (r.name + (r.model ?? '') + (r.barcode ?? '') + (r.category ?? '')).toLowerCase().includes(q.toLowerCase()),
   );
 
   return (
@@ -41,6 +59,7 @@ export default function Stock() {
       </div>
       {open && (
         <Receive
+          cats={cats}
           onDone={() => {
             setOpen(false);
             load();
@@ -48,21 +67,50 @@ export default function Stock() {
         />
       )}
       <input className={inp + ' mb-3'} placeholder="بحث بالاسم أو الموديل أو الباركود" value={q} onChange={(e) => setQ(e.target.value)} />
+      {cats.length > 0 && (
+        <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
+          {['', ...cats].map((c) => (
+            <button key={c || 'all'} onClick={() => setCat(c)}
+              className={`whitespace-nowrap rounded-full border px-3 py-1 text-sm ${cat === c ? 'border-brand bg-brand text-on-brand' : 'border-navy-600'}`}>
+              {c || 'الكل'}
+            </button>
+          ))}
+        </div>
+      )}
+      {msg && <p className="mb-2 rounded-lg bg-red-500/15 px-3 py-2 text-sm text-red-200">{msg}</p>}
       <div className="space-y-2">
         {shown.map((r) => (
-          <div key={r.product_id} className={card + ' flex items-center justify-between'}>
-            <div>
-              <b>{r.name}</b>
-              <div className="text-xs text-white/60" dir="ltr">
-                {[r.model, r.barcode].filter(Boolean).join(' · ')}
+          <div key={r.product_id} className={card + ' space-y-2'}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <b>{r.name}</b>
+                {r.category && <span className="ms-2 rounded-full bg-navy-700 px-2 py-0.5 text-xs">{r.category}</span>}
+                <div className="text-xs text-fg/60" dir="ltr">
+                  {[r.model, r.barcode].filter(Boolean).join(' · ')}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {canEdit && (
+                  <>
+                    <button aria-label="تعديل" onClick={() => setEditing(editing === r.product_id ? null : r.product_id)} className="rounded-lg border border-navy-600 p-1.5">
+                      <Pencil size={14} />
+                    </button>
+                    <button aria-label="حذف" onClick={() => remove(r)} className="rounded-lg border border-red-300/50 p-1.5 text-red-200">
+                      <Trash2 size={14} />
+                    </button>
+                  </>
+                )}
+                <span className={`rounded-lg px-3 py-1 font-bold ${Number(r.balance) <= Number(r.min_stock) ? 'bg-red-500/20 text-red-200' : 'bg-brand/15 text-brand'}`}>
+                  {Number(r.balance)}
+                </span>
               </div>
             </div>
-            <span className={`rounded-lg px-3 py-1 font-bold ${Number(r.balance) <= Number(r.min_stock) ? 'bg-red-500/20 text-red-200' : 'bg-brand/15 text-brand'}`}>
-              {Number(r.balance)}
-            </span>
+            {editing === r.product_id && (
+              <EditProduct row={r} cats={cats} onDone={() => { setEditing(null); load(); }} />
+            )}
           </div>
         ))}
-        {!shown.length && <p className="text-white/50">مفيش منتجات.</p>}
+        {!shown.length && <p className="text-fg/50">مفيش منتجات.</p>}
       </div>
     </div>
   );
@@ -70,7 +118,7 @@ export default function Stock() {
 
 const blank = { barcode: '', name: '', brand: '', model: '', category: '', track_serial: false, qty: 1, serials: '' };
 
-function Receive({ onDone }: { onDone: () => void }) {
+function Receive({ onDone, cats = [] }: { onDone: () => void; cats?: string[] }) {
   const [f, setF] = useState(blank);
   const [scan, setScan] = useState<'barcode' | 'serial' | null>(null);
   const [known, setKnown] = useState<string | null>(null);
@@ -162,7 +210,8 @@ function Receive({ onDone }: { onDone: () => void }) {
         </L>
       </div>
       <L t="الفئة (كاميرا، انتركم، شبكات...)">
-        <input readOnly={!!known} className={inp} value={f.category} onChange={set('category')} />
+        <input readOnly={!!known} list="cat-list" className={inp} value={f.category} onChange={set('category')} />
+        <datalist id="cat-list">{cats.map((c) => (<option key={c} value={c} />))}</datalist>
       </L>
       {!known && (
         <label className="flex items-center gap-2">
@@ -186,6 +235,39 @@ function Receive({ onDone }: { onDone: () => void }) {
       <button disabled={busy} className={btn + ' w-full'}>
         {busy ? 'جاري الحفظ...' : 'حفظ في المخزن'}
       </button>
+    </form>
+  );
+}
+
+function EditProduct({ row, cats, onDone }: { row: Bal; cats: string[]; onDone: () => void }) {
+  const [f, setF] = useState({ name: row.name, brand: row.brand ?? '', model: row.model ?? '', category: row.category ?? '', barcode: row.barcode ?? '', min_stock: Number(row.min_stock ?? 0) });
+  const [err, setErr] = useState('');
+  const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.from('products').update({
+      name: f.name, brand: f.brand || null, model: f.model || null, category: f.category.trim() || null, barcode: f.barcode || null, min_stock: f.min_stock,
+    }).eq('id', row.product_id);
+    if (error) return setErr(error.message);
+    onDone();
+  };
+  return (
+    <form onSubmit={save} className="space-y-2 rounded-xl bg-navy-800 p-3">
+      <L t="الاسم"><input required className={inp} value={f.name} onChange={set('name')} /></L>
+      <div className="grid grid-cols-2 gap-2">
+        <L t="الماركة"><input className={inp} value={f.brand} onChange={set('brand')} /></L>
+        <L t="الموديل"><input dir="ltr" className={inp} value={f.model} onChange={set('model')} /></L>
+      </div>
+      <L t="الفئة">
+        <input list="cat-edit" className={inp} value={f.category} onChange={set('category')} />
+        <datalist id="cat-edit">{cats.map((c) => (<option key={c} value={c} />))}</datalist>
+      </L>
+      <div className="grid grid-cols-2 gap-2">
+        <L t="الباركود / QR"><input dir="ltr" className={inp} value={f.barcode} onChange={set('barcode')} /></L>
+        <L t="حد التنبيه (أقل كمية)"><input type="number" min={0} className={inp} value={f.min_stock} onChange={(e) => setF({ ...f, min_stock: Number(e.target.value) })} /></L>
+      </div>
+      {err && <p className="text-sm text-red-200">{err}</p>}
+      <button className={btn + ' w-full'}>حفظ التعديل</button>
     </form>
   );
 }
