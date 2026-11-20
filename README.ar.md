@@ -1,19 +1,16 @@
-<div align="center">
+<div align="center" dir="rtl">
 
-<img src="assets/banner.svg" alt="Pro Smart Field" width="100%"/>
+<img src="assets/banner.png" alt="Pro Smart Field" width="100%"/>
 
-<br/>
+# برو سمارت — Pro Smart Field
 
-<img src="assets/logo.jpg" alt="شعار Pro Smart" width="120"/>
+**منصة إدارة أعمال التركيب الميداني: سمارت هوم، كاميرات مراقبة، إنتركم، وشبكات.**
 
-# Pro Smart Field — برو سمارت للتشغيل الميداني
+[![Developer](https://img.shields.io/badge/Developer-MOHAMED%20IBRAHEM-003a5f?style=for-the-badge)](#-حقوق-الملكية)
 
-**منصة إدارة أعمال التركيب الميداني: سمارت هوم · كاميرات مراقبة · إنتركم · شبكات.**
-أوامر الشغل · المعاينات · المخزن · مهام الفنيين · التقارير — في تطبيق واحد بالعربي والإنجليزي.
-
-[![المنصة](https://img.shields.io/badge/المنصة-Android%20%7C%20Web-0b7285?style=for-the-badge)](#-التقنيات-المستخدمة)
-[![الحالة](https://img.shields.io/badge/الحالة-قيد%20التطوير%20النشط-19c6e6?style=for-the-badge)](#-حالة-المشروع-والتحديثات)
-[![الرخصة](https://img.shields.io/badge/الحقوق-محفوظة-c92a2a?style=for-the-badge)](#-حقوق-الملكية)
+[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web-0b7285?style=for-the-badge)](#-التقنيات-المستخدمة)
+[![Status](https://img.shields.io/badge/Status-Active%20development-19c6e6?style=for-the-badge)](#-حالة-المشروع-والتحديثات)
+[![Rights](https://img.shields.io/badge/Rights-All%20Reserved-c92a2a?style=for-the-badge)](#-حقوق-الملكية)
 
 [🇬🇧 English version](README.md)
 
@@ -23,11 +20,35 @@
 
 ---
 
+## © حقوق الملكية
+
+<div align="center" dir="rtl">
+
+**جميع الحقوق محفوظة © 2026 — MOHAMED IBRAHEM**
+
+<a href="tel:+201122822813"><img src="https://img.shields.io/badge/Phone-%2B201122822813-0b7285?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik02LjYyIDEwLjc5YzEuNDQgMi44MyAzLjc2IDUuMTQgNi41OSA2LjU5bDIuMi0yLjJjLjI3LS4yNy42Ny0uMzYgMS4wMi0uMjQgMS4xMi4zNyAyLjMzLjU3IDMuNTcuNTcuNTUgMCAxIC40NSAxIDFWMjBjMCAuNTUtLjQ1IDEtMSAxLTkuMzkgMC0xNy03LjYxLTE3LTE3IDAtLjU1LjQ1LTEgMS0xaDMuNWMuNTUgMCAxIC40NSAxIDEgMCAxLjI1LjIgMi40NS41NyAzLjU3LjExLjM1LjAzLjc0LS4yNSAxLjAybC0yLjIgMi4yeiIvPjwvc3ZnPg%3D%3D" alt="Phone +201122822813"/></a>
+<a href="https://t.me/dev_muhamed"><img src="https://img.shields.io/badge/Telegram-%40dev__muhamed-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram @dev_muhamed"/></a>
+<a href="https://instagram.com/mhamed_shsya"><img src="https://img.shields.io/badge/Instagram-%40mhamed__shsya-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram @mhamed_shsya"/></a>
+
+</div>
+
+مشروع **Pro Smart Field** — بكوده وتصميمه وهيكل قاعدة بياناته وتوثيقه وكل ملحقاته — **صممه وطوّره بالكامل المطوّر MOHAMED IBRAHEM** (Pro Smart).
+
+- ❌ **ممنوع** نسخ المشروع أو أي جزء منه أو إعادة توزيعه أو بيعه أو نشره.
+- ❌ **ممنوع** التعديل عليه وتقديمه على إنه عملك.
+- ❌ **ممنوع** حذف أو تغيير هذا الإشعار أو اسم المطوّر.
+- ❌ **ممنوع** نسب المشروع أو ملكيته لأي شخص آخر بأي شكل.
+- ✅ الاستخدام مسموح **بإذن كتابي** من المالك فقط.
+
+أي استخدام أو نسخ أو نسب غير مصرّح به هو انتهاك لحقوق المطوّر وقد تتم المطالبة به قانونياً. راجع ملف [LICENSE](LICENSE). اسم وشعار **Pro Smart** علامات تجارية لصاحبها.
+
+---
+
 ## 📖 نبذة تعريفية
 
-**Pro Smart Field** تطبيق احترافي لإدارة العمل الميداني، اتعمل لشركة **Pro Smart** المتخصصة في تركيب أنظمة السمارت هوم وكاميرات المراقبة والإنتركم والشبكات في مصر.
+**Pro Smart Field** تطبيق لإدارة العمل الميداني، اتعمل لشركة **Pro Smart** المتخصصة في تركيب أنظمة السمارت هوم وكاميرات المراقبة والإنتركم والشبكات في مصر.
 
-بيستبدل الورق ورسايل الواتساب المتفرقة بسير شغل واحد منظم: المكتب بيعمل أمر الشغل، الفنيين بيوصلهم إشعار فوري، بيسجلوا كل اللي عملوه في الموقع (صور، توقيع، أجهزة، أطوال كابلات)، أمين المخزن بيتابع كل صنف خارج أو راجع، والمالك بيشوف الصورة كاملة في التقارير.
+بيستبدل الورق ورسايل الواتساب المتفرقة بسير شغل واحد منظم: المكتب بيعمل أمر الشغل، الفنيين بيوصلهم إشعار فوري ويسجلوا كل اللي عملوه في الموقع (صور، توقيع، أجهزة، أطوال كابلات)، أمين المخزن بيتابع كل صنف خارج أو راجع، والمالك بيشوف الصورة كاملة في التقارير.
 
 > متصمم للموبايل أولاً — بيشتغل كتطبيق **أندرويد (APK)** وكموقع ويب، ومعاه وضع عدم الاتصال للأماكن ضعيفة الشبكة.
 
@@ -42,8 +63,6 @@
 | <img src="docs/screenshots/orders.png" width="180"/> | <img src="docs/screenshots/survey.png" width="180"/> | <img src="docs/screenshots/stock.png" width="180"/> | <img src="docs/screenshots/reports.png" width="180"/> |
 
 </div>
-
-> 📌 استبدل الصور في [`docs/screenshots/`](docs/screenshots) بلقطات حقيقية من التطبيق بنفس أسماء الملفات.
 
 ---
 
@@ -98,55 +117,21 @@
 | الطبقة | التقنية |
 |---|---|
 | الواجهة | React 18 · TypeScript · Vite · Tailwind CSS 4 |
-| الباك إند | Supabase: PostgreSQL · Auth · Row-Level Security · Edge Functions · pg_cron |
+| الباك إند | Supabase: PostgreSQL · Auth · Row-Level Security · Edge Functions |
 | الموبايل | Capacitor 6 · Android |
 | الإشعارات | Firebase Cloud Messaging |
-| التصدير | ExcelJS · jsPDF · html2canvas |
+| التصدير | ExcelJS · jsPDF |
 | مسح الباركود | ZXing |
-| وضع عدم الاتصال | IndexedDB (idb-keyval) |
-| النشر | GitHub Actions ← APK في Releases · GitHub Pages للموقع |
+| النشر | GitHub Actions |
 
 ---
 
-## 🚀 طريقة التثبيت والتشغيل
+## 🚀 طريقة التثبيت
 
-### 1) قاعدة البيانات (Supabase ← SQL Editor، بالترتيب)
-
-| الملف | الغرض |
-|---|---|
-| `sql/step7.sql` | الجداول الأساسية (لو لسه ما اتشغلش) |
-| `sql/step8.sql` | الإشعارات + صرف المخزن |
-| `sql/step10.sql` | صلاحيات أمين المخزن + تعديل/حذف الأوامر |
-| `sql/step11.sql` | المالك + استلام الأمر + التذكيرات (pg_cron) + سجل العمليات |
-| `sql/step12.sql` | منطق المخزن (صرف ← تركيب ← مرتجع) + لقب مهندس |
-| `sql/step13.sql` | موافقة أمين المخزن على المرتجعات + زر واتساب |
-| `sql/step14.sql` | الفئات المتداخلة (بينقل القديمة لوحده) |
-| `sql/step15.sql` | أنواع الأوامر + كتالوج المعاينة + المعاينات + سجل التوريد |
-
-### 2) تشغيل الإشعارات (مرة واحدة)
-1. **Firebase**: أنشئ مشروع ← أضف تطبيق Android باسم الحزمة `com.prosmart.field` ← نزّل `google-services.json`.
-2. **GitHub**: *Settings ← Secrets and variables ← Actions* ← سر جديد اسمه `GOOGLE_SERVICES_JSON` وقيمته محتوى الملف.
-3. **Firebase**: *Project settings ← Service accounts* ← Generate new private key.
-4. **Supabase ← Edge Functions**: أنشئ `send-push` من `supabase/functions/send-push/index.ts`، وأضف الأسرار `FIREBASE_SERVICE_ACCOUNT` (ملف المفتاح) و`WEBHOOK_SECRET` (أي كلمة سر طويلة عشوائية).
-5. حط نفس `WEBHOOK_SECRET` في `sql/step9_push_webhook.sql` وشغّله.
-
-### 3) بناء الـ APK
-أي Push على `main` (أو *Actions ← Build Android APK ← Run workflow*) بيبني الـ APK وينشره في **Releases ← latest ← `ProSmart.apk`**.
-الـ APK دايماً متوقّع بالمفتاح الثابت في `ci/debug.keystore`، فكل نسخة جديدة بتتركّب **فوق** القديمة.
-
-> ⚠️ **ما تمسحش ولا تعيد إنشاء `ci/debug.keystore`.** أي مفتاح مختلف بيخلي أندرويد يرفض التحديث برسالة *"App not installed as package conflicts with an existing package"*. لو حصلت مرة (النسخة المركّبة متوقّعة بمفتاح قديم) امسح التطبيق وركّب آخر APK، وبعدها التحديثات بتشتغل عادي.
-
-### 4) الموقع (GitHub Pages)
-*Settings ← Pages ← Source: GitHub Actions*. كل Push على main بينشر الموقع.
-
-### 5) تشغيل محلي
-```bash
-npm install
-npm run dev
-```
-
-### 6) إعادة تعيين باسورد مستخدم (للمالك بس)
-انشر الـ Edge Function باسم `admin-reset-password` من `supabase/functions/admin-reset-password/index.ts`، وبعدها هتلاقي زرار "باسورد" جنب كل مستخدم في *الإعدادات ← المستخدمين*.
+1. نزّل ملف **`ProSmart.apk`** من [**Releases ← latest**](https://github.com/dev-m-ibrahim/prosmart-field/releases/tag/latest).
+2. افتحه على موبايل أندرويد واسمح بالتثبيت من المصدر لو طلب منك.
+3. سجّل دخول بالحساب اللي عمله لك الإداري.
+4. التحديثات: لما تنزل نسخة جديدة هيظهر شريط في أول الشاشة — اضغط **حدّث الآن**.
 
 ---
 
@@ -171,34 +156,21 @@ npm run dev
 - ✅ كتالوج 91 جهاز عربي/إنجليزي بيديره المالك
 - ✅ زرار "زوّد" في المخزن مع مصدر التوريد والرصيد قبل وبعد
 - ✅ واجهة عربي / إنجليزي
-- ✅ فحص توقيع الـ APK في CI عشان التحديثات تتركّب فوق القديمة دايماً
 
 ### قيد التنفيذ
 - ⏳ ترجمة ملفات PDF والتنبيهات اللي بتتولد من قاعدة البيانات للإنجليزي
 
 ---
 
-## © حقوق الملكية
-
-**جميع الحقوق محفوظة © 2026 — MOHAMED IBRAHEM.**
-
-مشروع **Pro Smart Field** — بكودِه وتصميمه وهيكل قاعدة بياناته وتوثيقه وكل ملحقاته — **صممه وطوّره بالكامل المطوّر MOHAMED IBRAHEM** (Pro Smart).
-
-- ❌ **ممنوع** نسخ المشروع أو أي جزء منه أو إعادة توزيعه أو بيعه أو نشره.
-- ❌ **ممنوع** التعديل عليه وتقديمه على إنه عملك.
-- ❌ **ممنوع** حذف أو تغيير هذا الإشعار أو اسم المطوّر.
-- ❌ **ممنوع** نسب المشروع أو ملكيته لأي شخص آخر بأي شكل.
-- ✅ الاستخدام مسموح **بإذن كتابي** من المالك فقط.
-
-أي استخدام أو نسخ أو نسب غير مصرّح به هو انتهاك لحقوق المطوّر وقد تتم المطالبة به قانونياً. راجع ملف [LICENSE](LICENSE).
-
-اسم وشعار **Pro Smart** علامات تجارية لصاحبها.
-
 </div>
 
-<div align="center">
+<div align="center" dir="rtl">
 
-**تم التطوير بكل ❤️ بواسطة MOHAMED IBRAHEM — Pro Smart، مصر**
+**© 2026 MOHAMED IBRAHEM — جميع الحقوق محفوظة. يُمنع النسخ أو نسب المشروع لغير صاحبه.**
+
+<a href="tel:+201122822813"><img src="https://img.shields.io/badge/Phone-%2B201122822813-0b7285?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik02LjYyIDEwLjc5YzEuNDQgMi44MyAzLjc2IDUuMTQgNi41OSA2LjU5bDIuMi0yLjJjLjI3LS4yNy42Ny0uMzYgMS4wMi0uMjQgMS4xMi4zNyAyLjMzLjU3IDMuNTcuNTcuNTUgMCAxIC40NSAxIDFWMjBjMCAuNTUtLjQ1IDEtMSAxLTkuMzkgMC0xNy03LjYxLTE3LTE3IDAtLjU1LjQ1LTEgMS0xaDMuNWMuNTUgMCAxIC40NSAxIDEgMCAxLjI1LjIgMi40NS41NyAzLjU3LjExLjM1LjAzLjc0LS4yNSAxLjAybC0yLjIgMi4yeiIvPjwvc3ZnPg%3D%3D" alt="Phone +201122822813"/></a>
+<a href="https://t.me/dev_muhamed"><img src="https://img.shields.io/badge/Telegram-%40dev__muhamed-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram @dev_muhamed"/></a>
+<a href="https://instagram.com/mhamed_shsya"><img src="https://img.shields.io/badge/Instagram-%40mhamed__shsya-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram @mhamed_shsya"/></a>
 
 *Smart Living, Simplified.*
 
