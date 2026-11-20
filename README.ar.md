@@ -26,6 +26,7 @@
 
 **جميع الحقوق محفوظة © 2026 — MOHAMED IBRAHEM**
 
+<a href="https://wa.me/201122822813"><img src="https://img.shields.io/badge/WhatsApp-%2B201122822813-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="WhatsApp +201122822813"/></a>
 <a href="tel:+201122822813"><img src="https://img.shields.io/badge/Phone-%2B201122822813-0b7285?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik02LjYyIDEwLjc5YzEuNDQgMi44MyAzLjc2IDUuMTQgNi41OSA2LjU5bDIuMi0yLjJjLjI3LS4yNy42Ny0uMzYgMS4wMi0uMjQgMS4xMi4zNyAyLjMzLjU3IDMuNTcuNTcuNTUgMCAxIC40NSAxIDFWMjBjMCAuNTUtLjQ1IDEtMSAxLTkuMzkgMC0xNy03LjYxLTE3LTE3IDAtLjU1LjQ1LTEgMS0xaDMuNWMuNTUgMCAxIC40NSAxIDEgMCAxLjI1LjIgMi40NS41NyAzLjU3LjExLjM1LjAzLjc0LS4yNSAxLjAybC0yLjIgMi4yeiIvPjwvc3ZnPg%3D%3D" alt="Phone +201122822813"/></a>
 <a href="https://t.me/dev_muhamed"><img src="https://img.shields.io/badge/Telegram-%40dev__muhamed-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram @dev_muhamed"/></a>
 <a href="https://instagram.com/mhamed_shsya"><img src="https://img.shields.io/badge/Instagram-%40mhamed__shsya-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram @mhamed_shsya"/></a>
@@ -58,9 +59,9 @@
 
 <div align="center">
 
-| أوامر الشغل | المعاينة | المخزن | التقارير |
+| أوامر الشغل | أمر جديد | المخزن | التقارير |
 |:---:|:---:|:---:|:---:|
-| <img src="docs/screenshots/orders.png" width="180"/> | <img src="docs/screenshots/survey.png" width="180"/> | <img src="docs/screenshots/stock.png" width="180"/> | <img src="docs/screenshots/reports.png" width="180"/> |
+| <img src="docs/screenshots/orders.png" width="180"/> | <img src="docs/screenshots/neworder.png" width="180"/> | <img src="docs/screenshots/stock.png" width="180"/> | <img src="docs/screenshots/reports.png" width="180"/> |
 
 </div>
 
@@ -168,6 +169,7 @@
 
 **© 2026 MOHAMED IBRAHEM — جميع الحقوق محفوظة. يُمنع النسخ أو نسب المشروع لغير صاحبه.**
 
+<a href="https://wa.me/201122822813"><img src="https://img.shields.io/badge/WhatsApp-%2B201122822813-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="WhatsApp +201122822813"/></a>
 <a href="tel:+201122822813"><img src="https://img.shields.io/badge/Phone-%2B201122822813-0b7285?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik02LjYyIDEwLjc5YzEuNDQgMi44MyAzLjc2IDUuMTQgNi41OSA2LjU5bDIuMi0yLjJjLjI3LS4yNy42Ny0uMzYgMS4wMi0uMjQgMS4xMi4zNyAyLjMzLjU3IDMuNTcuNTcuNTUgMCAxIC40NSAxIDFWMjBjMCAuNTUtLjQ1IDEtMSAxLTkuMzkgMC0xNy03LjYxLTE3LTE3IDAtLjU1LjQ1LTEgMS0xaDMuNWMuNTUgMCAxIC40NSAxIDEgMCAxLjI1LjIgMi40NS41NyAzLjU3LjExLjM1LjAzLjc0LS4yNSAxLjAybC0yLjIgMi4yeiIvPjwvc3ZnPg%3D%3D" alt="Phone +201122822813"/></a>
 <a href="https://t.me/dev_muhamed"><img src="https://img.shields.io/badge/Telegram-%40dev__muhamed-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram @dev_muhamed"/></a>
 <a href="https://instagram.com/mhamed_shsya"><img src="https://img.shields.io/badge/Instagram-%40mhamed__shsya-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram @mhamed_shsya"/></a>
