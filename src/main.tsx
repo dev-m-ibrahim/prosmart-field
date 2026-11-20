@@ -4,6 +4,7 @@ import './index.css';
 import { AuthProvider } from './auth';
 import App from './App';
 import { startOfflineSync } from './lib/offline';
+import { initI18n } from './i18n';
 
 class Boundary extends Component<{ children: ReactNode }, { e: Error | null }> {
   state = { e: null as Error | null };
@@ -21,6 +22,7 @@ class Boundary extends Component<{ children: ReactNode }, { e: Error | null }> {
   }
 }
 
+initI18n();
 startOfflineSync();
 const root = document.getElementById('root')!;
 root.dataset.ok = '1';

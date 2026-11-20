@@ -7,6 +7,7 @@ import { roleLabel } from '../types';
 import OfflineBar from './OfflineBar';
 import UpdateBanner from './UpdateBanner';
 import ThemeButton from './ThemeButton';
+import LangButton from './LangButton';
 import { clearUserCache, pendingCount } from '../lib/offline';
 
 export interface NavItem {
@@ -60,6 +61,7 @@ export default function Shell({ nav }: { nav: NavItem[] }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+        <LangButton />
         <ThemeButton />
         <button
           onClick={logout}

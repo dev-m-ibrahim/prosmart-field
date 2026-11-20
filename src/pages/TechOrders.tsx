@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Badge, card, fmt } from '../ui';
+import { Badge, KindChip, card, fmt } from '../ui';
 
 interface Order {
   id: string;
@@ -10,6 +10,7 @@ interface Order {
   location_text: string;
   scheduled_at: string;
   status: string;
+  kind?: string;
 }
 
 export default function TechOrders() {
@@ -17,7 +18,7 @@ export default function TechOrders() {
   useEffect(() => {
     supabase
       .from('work_orders')
-      .select('id,order_no,client_name,location_text,scheduled_at,status')
+      .select('id,order_no,client_name,location_text,scheduled_at,status,kind')
       .order('scheduled_at', { ascending: false })
       .then(({ data }) => setRows((data ?? []) as Order[]));
   }, []);
@@ -29,9 +30,12 @@ export default function TechOrders() {
         {rows.map((r) => (
           <Link key={r.id} to={`/tech/${r.id}`} className={card + ' block active:bg-navy-700'}>
             <div className="flex justify-between">
-              <b>
-                #{r.order_no} · {r.client_name}
-              </b>
+              <div className="flex flex-wrap items-center gap-2">
+                <b>
+                  #{r.order_no} · {r.client_name}
+                </b>
+                <KindChip k={r.kind} />
+              </div>
               <Badge s={r.status} />
             </div>
             <div className="mt-1 text-sm text-fg/60">{r.location_text}</div>

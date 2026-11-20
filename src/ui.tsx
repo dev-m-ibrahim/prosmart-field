@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { locale, t } from './i18n';
 
 export const inp =
   'w-full rounded-xl border border-navy-600 bg-navy-900 px-3 py-2.5 outline-none focus:border-brand';
@@ -32,7 +33,7 @@ export function L({ t, children }: { t: string; children: ReactNode }) {
 }
 
 export const fmt = (d: string) =>
-  new Date(d).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
+  new Date(d).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' });
 
 export const taskLabel: Record<string, string> = {
   pending: 'لسه',
@@ -40,3 +41,11 @@ export const taskLabel: Record<string, string> = {
   approved: 'تمت الموافقة',
   rejected: 'مرفوضة',
 };
+
+export const kindLabel = (k?: string | null) =>
+  k === 'survey' ? t('معاينة', 'Survey') : k === 'maintenance' ? t('صيانة', 'Maintenance') : t('تركيب', 'Installation');
+
+export function KindChip({ k }: { k?: string | null }) {
+  const cls = k === 'survey' ? 'bg-amber-400/15 text-amber-200' : k === 'maintenance' ? 'bg-rose-400/15 text-rose-200' : 'bg-navy-700 text-fg/80';
+  return <span className={`rounded-full px-2 py-0.5 text-[11px] ${cls}`}>{kindLabel(k)}</span>;
+}

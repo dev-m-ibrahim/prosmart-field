@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { locale } from '../../i18n';
 import { supabase } from '../../lib/supabase';
 import { btn, card, inp } from '../../ui';
 import { esc, exportExcel, exportPdf } from '../../lib/export';
@@ -51,7 +52,7 @@ export default function Reports() {
       const ids = [...new Set(tasks.map((t) => t.assigned_to))];
       const { data: ps } = await supabase.from('profiles').select('id,full_name').in('id', ids);
       const nm = new Map((ps ?? []).map((p) => [p.id as string, (p.full_name as string) || '—']));
-      const label = new Date(y, m - 1, 1).toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' });
+      const label = new Date(y, m - 1, 1).toLocaleDateString(locale, { month: 'long', year: 'numeric' });
       const th = 'style="border:1px solid #bbb;padding:5px;background:#003a5f;color:#fff;text-align:right"';
       const td = 'style="border:1px solid #ccc;padding:5px"';
       const per = ids.map((id) => ({ id, name: nm.get(id) ?? '—', rows: tasks.filter((t) => t.assigned_to === id) }))
@@ -66,7 +67,7 @@ export default function Reports() {
       const sections = per.map((x) => `
         <h3 style="color:#003a5f;margin:18px 0 4px">${esc(x.name)}</h3>
         <table style="width:100%;border-collapse:collapse"><tr><th ${th}>التاريخ</th><th ${th}>أمر</th><th ${th}>العميل</th><th ${th}>المهمة</th><th ${th}>البونص</th></tr>
-        ${x.rows.map((t) => `<tr><td ${td}>${esc(new Date(t.reviewed_at).toLocaleDateString('ar-EG'))}</td><td ${td}>#${t.work_orders?.order_no ?? ''}</td><td ${td}>${esc(t.work_orders?.client_name)}</td><td ${td}>${esc(t.title)}</td><td ${td}>${Number(t.bonus)} ج</td></tr>`).join('')}
+        ${x.rows.map((t) => `<tr><td ${td}>${esc(new Date(t.reviewed_at).toLocaleDateString(locale))}</td><td ${td}>#${t.work_orders?.order_no ?? ''}</td><td ${td}>${esc(t.work_orders?.client_name)}</td><td ${td}>${esc(t.title)}</td><td ${td}>${Number(t.bonus)} ج</td></tr>`).join('')}
         <tr><td ${td} colspan="4"><b>إجمالي ${esc(x.name)}</b></td><td ${td}><b>${x.total} ج</b></td></tr></table>
         <p style="margin:14px 0 0">توقيع الفني بالاستلام: ______________________</p>`).join('');
       await exportPdf(`bonus-${month}${who === 'all' ? '' : '-' + (nm.get(who) ?? '')}`, `

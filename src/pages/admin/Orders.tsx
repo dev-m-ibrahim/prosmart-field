@@ -5,7 +5,9 @@ import { useAuth } from '../../auth';
 import { supabase } from '../../lib/supabase';
 import Photos from '../../components/Photos';
 import OrderDetails from '../../components/OrderDetails';
-import { Badge, L, btn, card, fmt, inp, taskLabel } from '../../ui';
+import SurveyView from '../../components/SurveyView';
+import { t } from '../../i18n';
+import { Badge, KindChip, L, btn, card, fmt, inp, kindLabel, taskLabel } from '../../ui';
 
 interface Tech {
   id: string;
@@ -19,6 +21,8 @@ interface Row {
   location_text: string;
   location_url?: string | null;
   details?: string | null;
+  kind?: string;
+  parent_order_id?: string | null;
   scheduled_at: string;
   status: string;
   team_leader_id: string | null;
@@ -93,11 +97,19 @@ export default function Orders() {
         {rows.map((r) => (
           <div key={r.id} className={card}>
             <div className="flex justify-between">
-              <b>
-                #{r.order_no} · {r.client_name}
-              </b>
+              <div className="flex flex-wrap items-center gap-2">
+                <b>
+                  #{r.order_no} · {r.client_name}
+                </b>
+                <KindChip k={r.kind} />
+              </div>
               <Badge s={r.status} />
             </div>
+            {r.parent_order_id && (
+              <div className="mt-1 text-xs text-rose-200">
+                {t('صيانة لأمر', 'Maintenance for order')} #{rows.find((x) => x.id === r.parent_order_id)?.order_no ?? '—'}
+              </div>
+            )}
             {r.client_phone && profile?.can_whatsapp !== false && (
               <button
                 onClick={() => window.open(waLink(r.client_phone!, `أهلاً أستاذ/ة ${r.client_name} 👋\nمعاك ${profile?.full_name || 'الإدارة'} من شركة PROSMART.\nبنأكد معاد أمر الشغل #${r.order_no} يوم ${fmt(r.scheduled_at)}.\nيرجى تأكيد الميعاد، شكراً لحضرتك 🙏`), '_blank')}
@@ -161,7 +173,7 @@ export default function Orders() {
             <div className="mt-3">
               <Photos orderId={r.id} />
             </div>
-            <OrderDetails order={r} />
+            {r.kind === 'survey' ? <SurveyView order={r} /> : <OrderDetails order={r} />}
           </div>
         ))}
         {!rows.length && <p className="text-fg/50">مفيش أوامر لسه.</p>}
@@ -170,7 +182,12 @@ export default function Orders() {
   );
 }
 
+interface Prev { id: string; order_no: number; client_name: string; client_phone: string | null; location_text: string; location_url: string | null }
+
 function NewOrder({ onDone }: { onDone: () => void }) {
+  const [kind, setKind] = useState<'install' | 'survey' | 'maintenance'>('install');
+  const [parent, setParent] = useState('');
+  const [prev, setPrev] = useState<Prev[]>([]);
   const [techs, setTechs] = useState<Tech[]>([]);
   const [sel, setSel] = useState<string[]>([]);
   const [leader, setLeader] = useState('');
@@ -197,6 +214,30 @@ function NewOrder({ onDone }: { onDone: () => void }) {
       .then(({ data }) => setTechs((data ?? []) as Tech[]));
   }, []);
 
+  useEffect(() => {
+    if (kind !== 'maintenance' || prev.length) return;
+    supabase
+      .from('work_orders')
+      .select('id,order_no,client_name,client_phone,location_text,location_url')
+      .order('scheduled_at', { ascending: false })
+      .limit(150)
+      .then(({ data }) => setPrev((data ?? []) as Prev[]));
+  }, [kind, prev.length]);
+
+  const pickParent = (id: string) => {
+    setParent(id);
+    const p = prev.find((x) => x.id === id);
+    if (p)
+      setF((x) => ({
+        ...x,
+        client_name: p.client_name,
+        client_phone: p.client_phone ?? '',
+        location_text: p.location_text,
+        location_url: p.location_url ?? '',
+        details: x.details || `${t('صيانة لأمر سابق', 'Maintenance for previous order')} #${p.order_no}`,
+      }));
+  };
+
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) =>
     setF({ ...f, [k]: e.target.value });
   const toggle = (id: string) =>
@@ -212,6 +253,8 @@ function NewOrder({ onDone }: { onDone: () => void }) {
       .from('work_orders')
       .insert({
         ...f,
+        kind,
+        parent_order_id: kind === 'maintenance' && parent ? parent : null,
         location_url: f.location_url || null,
         details: f.details || null,
         scheduled_at: new Date(f.scheduled_at).toISOString(),
@@ -244,6 +287,22 @@ function NewOrder({ onDone }: { onDone: () => void }) {
 
   return (
     <form onSubmit={submit} className={card + ' mb-4 space-y-3'}>
+      <div className="grid grid-cols-3 gap-2">
+        {(['install', 'survey', 'maintenance'] as const).map((k) => (
+          <button key={k} type="button" onClick={() => setKind(k)}
+            className={`rounded-xl border py-2 text-sm font-bold ${kind === k ? 'border-brand bg-brand/15 text-brand' : 'border-navy-600'}`}>
+            {kindLabel(k)}
+          </button>
+        ))}
+      </div>
+      {kind === 'maintenance' && (
+        <L t={t('ربط بأمر سابق (اختياري)', 'Link to a previous order (optional)')}>
+          <select className={inp} value={parent} onChange={(e) => pickParent(e.target.value)}>
+            <option value="">{t('— صيانة جديدة من غير ربط —', '— New maintenance, no link —')}</option>
+            {prev.map((p) => (<option key={p.id} value={p.id}>#{p.order_no} · {p.client_name}</option>))}
+          </select>
+        </L>
+      )}
       <L t="اسم العميل">
         <input required className={inp} value={f.client_name} onChange={set('client_name')} />
       </L>

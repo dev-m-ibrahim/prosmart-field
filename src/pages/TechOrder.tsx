@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapPin, MessageCircle, Phone, LogIn, LogOut, Plus, CheckCheck } from 'lucide-react';
 import { waLink } from '../lib/phone';
@@ -7,7 +7,9 @@ import { useAuth } from '../auth';
 import Photos from '../components/Photos';
 import SignaturePad from '../components/SignaturePad';
 import Materials from '../components/Materials';
-import { Badge, L, btn, card, fmt, inp, taskLabel } from '../ui';
+import SurveyForm from '../components/SurveyForm';
+import { t } from '../i18n';
+import { Badge, KindChip, L, btn, card, fmt, inp, taskLabel } from '../ui';
 
 interface Order {
   id: string;
@@ -19,6 +21,7 @@ interface Order {
   scheduled_at: string;
   details: string | null;
   status: string;
+  kind?: string;
 }
 interface Cred {
   id?: string;
@@ -31,6 +34,7 @@ interface Cred {
 const kinds: Record<string, string> = { camera: 'كاميرا', network: 'شبكة', intercom: 'انتركم', other: 'أخرى' };
 const emptyR = {
   work_done: '',
+  maint_issue: '',
   modules_count: 0,
   cameras_count: 0,
   intercoms_count: 0,
@@ -53,6 +57,8 @@ export default function TechOrder() {
   const [sig, setSig] = useState('');
   const [tasks, setTasks] = useState<{ id: string; title: string; bonus: number; status: string; tech_note: string | null }[]>([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const surveySave = useRef<(() => Promise<boolean>) | null>(null);
+  const regSave = useCallback((fn: () => Promise<boolean>) => { surveySave.current = fn; }, []);
 
   const load = useCallback(async () => {
     const { data: ord } = await supabase.from('work_orders').select('*').eq('id', id!).single();
@@ -75,6 +81,7 @@ export default function TechOrder() {
       setSig(rep.signature_path ?? '');
       setR({
         work_done: rep.work_done ?? '',
+        maint_issue: rep.maint_issue ?? '',
         modules_count: rep.modules_count,
         cameras_count: rep.cameras_count,
         intercoms_count: rep.intercoms_count,
@@ -177,6 +184,17 @@ export default function TechOrder() {
     load();
   };
 
+  const departSurvey = async () => {
+    if (surveySave.current && !(await surveySave.current())) return;
+    const { error } = await supabase
+      .from('work_order_techs')
+      .update({ departed_at: new Date().toISOString() })
+      .eq('work_order_id', id!)
+      .eq('tech_id', uid);
+    if (!error) await supabase.rpc('finish_order', { wo: id!, followup: false });
+    load();
+  };
+
   const doTask = async (tid: string) => {
     const { error } = await supabase.rpc('submit_task', { task: tid, note: notes[tid] ?? '' });
     if (error) setMsg(error.message);
@@ -195,9 +213,12 @@ export default function TechOrder() {
     <div className="space-y-4">
       <div className={card + ' space-y-2'}>
         <div className="flex justify-between">
-          <b>
-            #{o.order_no} · {o.client_name}
-          </b>
+          <div className="flex flex-wrap items-center gap-2">
+            <b>
+              #{o.order_no} · {o.client_name}
+            </b>
+            <KindChip k={o.kind} />
+          </div>
           <Badge s={o.status} />
         </div>
         <div className="text-sm text-fg/70">{fmt(o.scheduled_at)}</div>
@@ -238,7 +259,7 @@ export default function TechOrder() {
       {me?.arrived_at && <p className="text-sm text-brand">وقت الوصول: {fmt(me.arrived_at)}</p>}
       {me?.departed_at && <p className="text-sm text-brand">وقت الانصراف: {fmt(me.departed_at)}</p>}
 
-      {me?.arrived_at && <Materials orderId={id!} />}
+      {me?.arrived_at && o.kind !== 'survey' && <Materials orderId={id!} />}
 
       {tasks.length > 0 && (
         <div className={card + ' space-y-2'}>
@@ -268,18 +289,36 @@ export default function TechOrder() {
         </div>
       )}
 
-      {me?.arrived_at && (
+      {me?.arrived_at && o.kind === 'survey' && (
+        <>
+          <SurveyForm orderId={o.id} defaultCustomer={o.client_name} onRegisterSave={regSave} />
+          {!me.departed_at && (
+            <button onClick={departSurvey} className={btn + ' flex w-full items-center justify-center gap-1'}>
+              <LogOut size={16} /> {t('حفظ المعاينة وانصراف', 'Save survey & leave site')}
+            </button>
+          )}
+        </>
+      )}
+
+      {me?.arrived_at && o.kind !== 'survey' && (
         <div className={card + ' space-y-3'}>
-          <h2 className="font-bold">تقرير الموقع</h2>
-          <L t="اللي اتعمل في الموقع">
+          <h2 className="font-bold">{o.kind === 'maintenance' ? t('تقرير الصيانة', 'Maintenance report') : 'تقرير الموقع'}</h2>
+          {o.kind === 'maintenance' && (
+            <L t={t('المشكلة / العطل اللي اتلاقى', 'Problem found')}>
+              <textarea rows={2} className={inp} value={r.maint_issue} onChange={(e) => setR({ ...r, maint_issue: e.target.value })} />
+            </L>
+          )}
+          <L t={o.kind === 'maintenance' ? t('اللي حصل في الصيانة (إيه اتعمل)', 'What happened in the maintenance (what was done)') : 'اللي اتعمل في الموقع'}>
             <textarea rows={3} className={inp} value={r.work_done} onChange={(e) => setR({ ...r, work_done: e.target.value })} />
           </L>
-          <div className="grid grid-cols-2 gap-3">
-            <L t="عدد المديولات">{num('modules_count')}</L>
-            <L t="عدد الكاميرات">{num('cameras_count')}</L>
-            <L t="عدد الانتركم">{num('intercoms_count')}</L>
-            <L t="السلك (متر)">{num('cable_length_m')}</L>
-          </div>
+          {o.kind !== 'maintenance' && (
+            <div className="grid grid-cols-2 gap-3">
+              <L t="عدد المديولات">{num('modules_count')}</L>
+              <L t="عدد الكاميرات">{num('cameras_count')}</L>
+              <L t="عدد الانتركم">{num('intercoms_count')}</L>
+              <L t="السلك (متر)">{num('cable_length_m')}</L>
+            </div>
+          )}
 
           <div className="space-y-2">
             <span className="text-sm text-fg/70">باسوردات و IP</span>

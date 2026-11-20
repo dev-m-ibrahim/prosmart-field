@@ -1,4 +1,5 @@
 import ThemeButton from '../components/ThemeButton';
+import LangButton from '../components/LangButton';
 import { useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
@@ -25,7 +26,7 @@ export default function Login() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6 py-8">
-      <div className="mb-2 flex justify-end"><ThemeButton /></div>
+      <div className="mb-2 flex justify-end gap-2"><LangButton /><ThemeButton /></div>
       <img src="./logo.jpg" alt="Pro Smart" className="mx-auto mb-6 max-h-64 w-auto" />
 
       <form onSubmit={submit} className="space-y-3">

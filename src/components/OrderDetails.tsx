@@ -3,9 +3,11 @@ import { FileDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { esc, exportPdf } from '../lib/export';
 import { fmt } from '../ui';
+import { t } from '../i18n';
 
 interface Rep {
   work_done: string | null;
+  maint_issue?: string | null;
   modules_count: number;
   cameras_count: number;
   intercoms_count: number;
@@ -63,6 +65,7 @@ export default function OrderDetails({ order }: { order: OrderLite }) {
         <h2 style="margin:0;color:#003a5f">PROSMART — تقرير أمر شغل #${order.order_no}</h2>
         <p style="color:#555;margin:2px 0 12px">${esc(order.client_name)} · ${esc(order.location_text)} · ${esc(fmt(order.scheduled_at))}</p>
         ${r ? `
+          ${r.maint_issue ? `<p><b>المشكلة:</b> ${esc(r.maint_issue)}</p>` : ''}
           <p><b>اللي اتعمل:</b> ${esc(r.work_done)}</p>
           <p>مديولات: <b>${r.modules_count}</b> · كاميرات: <b>${r.cameras_count}</b> · انتركم: <b>${r.intercoms_count}</b> · سلك: <b>${r.cable_length_m} م</b></p>
           <p><b>رأي العميل:</b> ${esc(r.client_feedback)}</p>
@@ -82,6 +85,7 @@ export default function OrderDetails({ order }: { order: OrderLite }) {
           {loaded && !rep && <p className="text-fg/60">الفني لسه ماكتبش تقرير.</p>}
           {rep && (
             <>
+              {rep.maint_issue && <p className="whitespace-pre-wrap"><b>{t('المشكلة', 'Problem')}:</b> {rep.maint_issue}</p>}
               {rep.work_done && <p className="whitespace-pre-wrap">{rep.work_done}</p>}
               <p className="text-fg/70">مديولات {rep.modules_count} · كاميرات {rep.cameras_count} · انتركم {rep.intercoms_count} · سلك {rep.cable_length_m} م</p>
               {rep.client_feedback && <p><b>رأي العميل:</b> {rep.client_feedback}</p>}

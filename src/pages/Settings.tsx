@@ -1,4 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { lang, locale, setLang, t } from '../i18n';
+import CatalogManager from '../components/CatalogManager';
 import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '../auth';
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabase } from '../lib/supabase';
@@ -48,6 +50,17 @@ export default function Settings() {
     <div className="space-y-4">
       <h1 className="text-xl font-bold">الإعدادات</h1>
       <div className={card + ' space-y-3'}>
+        <h2 className="font-bold">{t('اللغة', 'Language')}</h2>
+        <div className="grid grid-cols-2 gap-2">
+          {([['ar', 'العربية'], ['en', 'English']] as const).map(([l, label]) => (
+            <button key={l} onClick={() => l !== lang && setLang(l)}
+              className={`rounded-xl border py-2 font-bold ${lang === l ? 'border-brand bg-brand/15 text-brand' : 'border-navy-600'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className={card + ' space-y-3'}>
         <h2 className="font-bold">بياناتي</h2>
         <L t="الاسم"><input className={inp} value={name} onChange={(e) => setName(e.target.value)} /></L>
         <L t="رقم التليفون"><input dir="ltr" className={inp} value={phone} onChange={(e) => setPhone(e.target.value)} /></L>
@@ -62,6 +75,7 @@ export default function Settings() {
       </div>
       {msg && <p className="text-sm text-brand">{msg}</p>}
       <AppVersion />
+      {(profile?.is_owner || profile?.can_manage_catalog) && <CatalogManager />}
       {profile?.is_owner && <Users />}
       {profile?.is_owner && <AuditLog />}
     </div>
@@ -116,6 +130,12 @@ function Users() {
             <label className="flex w-full items-center gap-1 text-xs text-amber-200">
               <input type="checkbox" checked={!!u.can_manage_orders} onChange={(e) => upd(u.id, { can_manage_orders: e.target.checked })} />
               تعديل/حذف أوامر الشغل
+            </label>
+          )}
+          {me?.is_owner && !u.is_owner && (
+            <label className="flex w-full items-center gap-1 text-xs text-amber-200">
+              <input type="checkbox" checked={!!u.can_manage_catalog} onChange={(e) => upd(u.id, { can_manage_catalog: e.target.checked })} />
+              {t('إدارة كتالوج أجهزة المعاينة', 'Manage the survey device catalog')}
             </label>
           )}
           {me?.is_owner && !u.is_owner && (
@@ -196,7 +216,7 @@ function AuditLog() {
     supabase.from('audit_log').select('id,at,user_name,action,summary,details').order('at', { ascending: false }).limit(200)
       .then(({ data }) => setRows((data ?? []) as Audit[]));
   }, [show]);
-  const fmtv = (v: unknown) => (v == null || v === '' ? '—' : typeof v === 'string' && /^\d{4}-\d\d-\d\dT/.test(v) ? new Date(v).toLocaleString('ar-EG') : String(v));
+  const fmtv = (v: unknown) => (v == null || v === '' ? '—' : typeof v === 'string' && /^\d{4}-\d\d-\d\dT/.test(v) ? new Date(v).toLocaleString(locale) : String(v));
   return (
     <div className={card + ' space-y-2'}>
       <button className="font-bold text-start" onClick={() => setShow(!show)}>سجل العمليات {show ? '▲' : '▼'}</button>
@@ -205,7 +225,7 @@ function AuditLog() {
           <button className="w-full text-start" onClick={() => setOpen(open === r.id ? null : r.id)}>
             <div className="flex justify-between gap-2">
               <b>{actLabel[r.action] ?? r.action}</b>
-              <span className="whitespace-nowrap text-xs text-fg/50">{new Date(r.at).toLocaleString('ar-EG')}</span>
+              <span className="whitespace-nowrap text-xs text-fg/50">{new Date(r.at).toLocaleString(locale)}</span>
             </div>
             <div className="text-fg/80">{r.summary}</div>
             <div className="text-xs text-fg/50">بواسطة: {r.user_name ?? 'النظام'}</div>

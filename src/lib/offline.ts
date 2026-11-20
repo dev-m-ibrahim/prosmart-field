@@ -22,7 +22,7 @@ const WRITE_RPC = new Set(['finish_order', 'submit_task', 'report_stock_usage'])
 const NO_CACHE_TABLES = new Set(['report_credentials']); // device passwords are never cached on the phone
 const BLOCK_TABLES = new Set(['stock_movements', 'stock_items', 'products', 'profiles', 'notifications', 'device_tokens']);
 // tables whose primary key is a client-generatable uuid `id` (so ids can be created offline and referenced later)
-const ID_TABLES = new Set(['work_orders', 'work_order_tasks', 'site_reports', 'report_credentials']);
+const ID_TABLES = new Set(['work_orders', 'work_order_tasks', 'site_reports', 'report_credentials', 'site_surveys']);
 const RESERVED = new Set(['select', 'order', 'limit', 'offset', 'on_conflict', 'columns']);
 
 type Hdrs = [string, string][];

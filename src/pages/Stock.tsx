@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Pencil, Plus, ScanBarcode, Trash2 } from 'lucide-react';
+import { History, PackagePlus, Pencil, Plus, ScanBarcode, Trash2 } from 'lucide-react';
+import { t } from '../i18n';
 import { useAuth } from '../auth';
 import { supabase } from '../lib/supabase';
 import Scanner from '../components/Scanner';
 import CategoryPicker from '../components/CategoryPicker';
 import CategoryManager from '../components/CategoryManager';
 import { childrenOf, loadCats, pathOf, withDescendants, type Cat } from '../lib/categories';
-import { L, btn, card, inp } from '../ui';
+import { L, btn, card, fmt, inp } from '../ui';
 
 interface Bal {
   product_id: string;
@@ -19,6 +20,7 @@ interface Bal {
   category_path?: string | null;
   min_stock: number;
   balance: number;
+  track_serial?: boolean;
 }
 
 export default function Stock() {
@@ -28,6 +30,8 @@ export default function Stock() {
   const [catId, setCatId] = useState<string | null>(null);
   const [cats, setCats] = useState<Cat[]>([]);
   const [manage, setManage] = useState(false);
+  const [adding, setAdding] = useState<string | null>(null);
+  const [hist, setHist] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const { profile } = useAuth();
   const canEdit = profile?.role === 'admin' || !!profile?.is_owner; // owner + admin only
@@ -72,6 +76,9 @@ export default function Stock() {
           {canEdit && (
             <button className="rounded-xl border border-navy-600 px-3 py-2.5 text-sm" onClick={() => setManage(!manage)}>الفئات</button>
           )}
+          <button aria-label={t('سجل التوريد', 'Receipts log')} className="rounded-xl border border-navy-600 px-3 py-2.5" onClick={() => setHist(!hist)}>
+            <History size={16} />
+          </button>
           <button className={btn + ' flex items-center gap-1'} onClick={() => setOpen(!open)}>
             <Plus size={16} />
             استلام بضاعة
@@ -79,6 +86,7 @@ export default function Stock() {
         </div>
       </div>
       {manage && canEdit && <CategoryManager cats={cats} reload={load} />}
+      {hist && <Receipts />}
       {open && (
         <Receive
           cats={cats}
@@ -117,6 +125,9 @@ export default function Stock() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <button onClick={() => setAdding(adding === r.product_id ? null : r.product_id)} className="flex items-center gap-1 rounded-lg border border-brand px-2 py-1.5 text-xs text-brand">
+                  <PackagePlus size={14} /> {t('زوّد', 'Add')}
+                </button>
                 {canEdit && (
                   <>
                     <button aria-label="تعديل" onClick={() => setEditing(editing === r.product_id ? null : r.product_id)} className="rounded-lg border border-navy-600 p-1.5">
@@ -132,6 +143,7 @@ export default function Stock() {
                 </span>
               </div>
             </div>
+            {adding === r.product_id && <AddQty row={r} onDone={() => { setAdding(null); load(); }} />}
             {editing === r.product_id && (
               <EditProduct row={r} cats={cats} reloadCats={async () => setCats(await loadCats())} onDone={() => { setEditing(null); load(); }} />
             )}
@@ -143,7 +155,7 @@ export default function Stock() {
   );
 }
 
-const blank = { barcode: '', name: '', brand: '', model: '', category_id: null as string | null, track_serial: false, qty: 1, serials: '' };
+const blank = { barcode: '', name: '', brand: '', model: '', category_id: null as string | null, track_serial: false, qty: 1, serials: '', ref: '' };
 
 function Receive({ onDone, cats, reloadCats }: { onDone: () => void; cats: Cat[]; reloadCats: () => void | Promise<void> }) {
   const [f, setF] = useState(blank);
@@ -190,6 +202,9 @@ function Receive({ onDone, cats, reloadCats }: { onDone: () => void; cats: Cat[]
       }
       pid = data.id;
     }
+    // receipt header: where this delivery came from (invoice / supplier / job) — optional, kept for the log
+    const { data: rc } = await supabase.from('stock_receipts').insert({ ref: f.ref.trim() || null }).select('id').single();
+    const rx = rc?.id ? { receipt_id: rc.id } : {};
     if (f.track_serial) {
       const list = [...new Set(f.serials.split('\n').map((s) => s.trim()).filter(Boolean))];
       if (!list.length) {
@@ -204,10 +219,10 @@ function Receive({ onDone, cats, reloadCats }: { onDone: () => void; cats: Cat[]
           setBusy(false);
           return;
         }
-        await supabase.from('stock_movements').insert({ product_id: pid, stock_item_id: it.id, type: 'in', quantity: 1 });
+        await supabase.from('stock_movements').insert({ product_id: pid, stock_item_id: it.id, type: 'in', quantity: 1, ...rx });
       }
     } else {
-      await supabase.from('stock_movements').insert({ product_id: pid, type: 'in', quantity: f.qty });
+      await supabase.from('stock_movements').insert({ product_id: pid, type: 'in', quantity: f.qty, ...rx });
     }
     setBusy(false);
     onDone();
@@ -257,6 +272,9 @@ function Receive({ onDone, cats, reloadCats }: { onDone: () => void; cats: Cat[]
           <input type="number" min={1} step="any" className={inp} value={f.qty} onChange={(e) => setF({ ...f, qty: Number(e.target.value) })} />
         </L>
       )}
+      <L t={t('المصدر (فاتورة / مورد / اسم الشغل) — اختياري', 'Source (invoice / supplier / job) — optional')}>
+        <input className={inp} value={f.ref} onChange={set('ref')} />
+      </L>
       {err && <p className="rounded-lg bg-red-500/15 px-3 py-2 text-sm text-red-200">{err}</p>}
       <button disabled={busy} className={btn + ' w-full'}>
         {busy ? 'جاري الحفظ...' : 'حفظ في المخزن'}
@@ -294,5 +312,107 @@ function EditProduct({ row, cats, reloadCats, onDone }: { row: Bal; cats: Cat[];
       {err && <p className="text-sm text-red-200">{err}</p>}
       <button className={btn + ' w-full'}>حفظ التعديل</button>
     </form>
+  );
+}
+
+// Add quantity to an existing product. The balance is never typed in directly: every increase is a stock movement
+// (with an optional source), so the history stays traceable.
+function AddQty({ row, onDone }: { row: Bal; onDone: () => void }) {
+  const [qty, setQty] = useState(1);
+  const [ref, setRef] = useState('');
+  const [serials, setSerials] = useState('');
+  const [scan, setScan] = useState(false);
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+  const tracked = !!row.track_serial;
+  const list = [...new Set(serials.split('\n').map((s) => s.trim()).filter(Boolean))];
+  const n = tracked ? list.length : qty;
+
+  const submit = async () => {
+    if (!(n >= 1) || (!tracked && !Number.isInteger(qty))) return setErr(tracked ? t('اكتب أو امسح سيريال واحد على الأقل', 'Type or scan at least one serial') : t('الكمية غلط', 'Invalid quantity'));
+    if (n >= 100 && !window.confirm(t(`هتزود ${n} قطعة على "${row.name}". متأكد؟`, `Add ${n} units to "${row.name}". Are you sure?`))) return;
+    setBusy(true);
+    setErr('');
+    const { data: rc } = await supabase.from('stock_receipts').insert({ ref: ref.trim() || null }).select('id').single();
+    const rx = rc?.id ? { receipt_id: rc.id } : {};
+    if (tracked) {
+      for (const sn of list) {
+        const { data: it, error: e1 } = await supabase.from('stock_items').insert({ product_id: row.product_id, serial_number: sn }).select('id').single();
+        if (e1 || !it) { setErr(`${sn}: ${e1?.message}`); setBusy(false); return; }
+        const { error: e2 } = await supabase.from('stock_movements').insert({ product_id: row.product_id, stock_item_id: it.id, type: 'in', quantity: 1, ...rx });
+        if (e2) { setErr(e2.message); setBusy(false); return; }
+      }
+    } else {
+      const { error } = await supabase.from('stock_movements').insert({ product_id: row.product_id, type: 'in', quantity: qty, ...rx });
+      if (error) { setErr(error.message); setBusy(false); return; }
+    }
+    setBusy(false);
+    onDone();
+  };
+
+  return (
+    <div className="space-y-2 rounded-xl bg-navy-800 p-3">
+      {scan && <Scanner onResult={(v) => { setSerials((s) => (s ? s + '\n' : '') + v); setScan(false); }} onClose={() => setScan(false)} />}
+      {tracked ? (
+        <L t="السيريالات (واحد في كل سطر)">
+          <textarea rows={3} dir="ltr" className={inp} value={serials} onChange={(e) => setSerials(e.target.value)} />
+          <button type="button" onClick={() => setScan(true)} className="mt-1 flex items-center gap-1 text-sm text-brand"><ScanBarcode size={16} /> مسح سيريال</button>
+        </L>
+      ) : (
+        <L t={t('الكمية اللي دخلت', 'Quantity received')}>
+          <input type="number" min={1} step={1} className={inp} value={qty} onChange={(e) => setQty(Number(e.target.value))} />
+        </L>
+      )}
+      <L t={t('المصدر (فاتورة / مورد / اسم الشغل) — اختياري', 'Source (invoice / supplier / job) — optional')}>
+        <input className={inp} value={ref} onChange={(e) => setRef(e.target.value)} />
+      </L>
+      <p className="text-sm text-fg/70">
+        {t('الرصيد بعد الإضافة', 'Balance after adding')}: {Number(row.balance)} → <b className="text-brand">{Number(row.balance) + (n > 0 ? n : 0)}</b>
+      </p>
+      {err && <p className="text-sm text-red-200">{err}</p>}
+      <button disabled={busy} onClick={submit} className={btn + ' w-full'}>{busy ? 'جاري الحفظ...' : t('تأكيد الإضافة', 'Confirm addition')}</button>
+    </div>
+  );
+}
+
+interface Rcpt {
+  id: string;
+  ref: string | null;
+  created_at: string;
+  profiles: { full_name: string } | null;
+  stock_movements: { quantity: number; products: { name: string } | null }[];
+}
+
+// Who added what, when, and from which source.
+function Receipts() {
+  const [rows, setRows] = useState<Rcpt[] | null>(null);
+  useEffect(() => {
+    supabase
+      .from('stock_receipts')
+      .select('id,ref,created_at,profiles(full_name),stock_movements(quantity,products(name))')
+      .order('created_at', { ascending: false })
+      .limit(40)
+      .then(({ data }) => setRows((data ?? []) as unknown as Rcpt[]));
+  }, []);
+  return (
+    <div className={card + ' mb-4 space-y-2 text-sm'}>
+      <b>{t('سجل التوريد (آخر 40)', 'Receipts log (last 40)')}</b>
+      {rows === null && <p className="text-fg/60">جاري التحميل...</p>}
+      {rows?.map((r) => {
+        const sum = new Map<string, number>();
+        r.stock_movements.forEach((m) => sum.set(m.products?.name ?? '—', (sum.get(m.products?.name ?? '—') ?? 0) + Number(m.quantity)));
+        return (
+          <div key={r.id} className="rounded-xl bg-navy-800 p-2">
+            <div className="flex justify-between text-xs text-fg/60">
+              <span>{fmt(r.created_at)}</span>
+              <span>{r.profiles?.full_name ?? ''}</span>
+            </div>
+            {r.ref && <div className="text-amber-200">{r.ref}</div>}
+            <div>{[...sum.entries()].map(([n, q]) => `${n} × ${q}`).join(' · ') || '—'}</div>
+          </div>
+        );
+      })}
+      {rows?.length === 0 && <p className="text-fg/50">{t('مفيش عمليات توريد مسجلة لسه.', 'No receipts recorded yet.')}</p>}
+    </div>
   );
 }
