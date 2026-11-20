@@ -1,68 +1,214 @@
-# Pro Smart Field App
+<div align="center">
 
-## 1) قاعدة البيانات (Supabase → SQL Editor، بالترتيب)
-- `sql/step7.sql` (لو لسه ما اتشغلش)
-- `sql/step8.sql`: الإشعارات + صرف المخزن
-- `sql/step10.sql`: جديد: صلاحيات أمين المخزن + تعديل/حذف الأوامر لإداري معين (وفي آخره سطر تحدد بيه الإداري صاحب الصلاحية)
+<img src="assets/banner.svg" alt="Pro Smart Field — Smart Living, Simplified" width="100%"/>
 
-- `sql/step11.sql` ← جديد: المالك + استلام الأمر + التذكيرات (pg_cron) + سجل العمليات (وفي آخره خطوات إنشاء حساب المالك)
+<br/>
 
-- `sql/step12.sql` ← جديد: منطق المخزن (صرف ← تركيب ← مرتجع) + لقب مهندس
+<img src="assets/logo.jpg" alt="Pro Smart logo" width="120"/>
 
-- `sql/step13.sql` ← موافقة أمين المخزن على المرتجعات + زر واتساب
-- `sql/step14.sql` ← الفئات المتداخلة (سمارت هوم > الماركة > النوع...) — بينقل الفئات القديمة لوحده
-- `sql/step15.sql` ← جديد: أنواع الأوامر (تركيب / معاينة / صيانة) + كتالوج أجهزة المعاينة + المعاينات + سجل توريد المخزن
+# Pro Smart Field
 
-## 2) تشغيل الإشعارات (مرة واحدة)
-1. **Firebase**: console.firebase.google.com → Create project → Add Android app باسم الحزمة `com.prosmart.field` → نزّل `google-services.json`.
-2. **GitHub Secret**: في الـ Repo → Settings → Secrets and variables → Actions → New secret
-   اسمه `GOOGLE_SERVICES_JSON` وقيمته محتوى ملف `google-services.json` كله.
-3. **مفتاح السيرفر**: Firebase → Project settings → Service accounts → Generate new private key (ملف JSON).
-4. **Supabase → Edge Functions → Create function** باسم `send-push` والصق محتوى `supabase/functions/send-push/index.ts`.
-   ثم Edge Functions → Secrets وأضف:
-   - `FIREBASE_SERVICE_ACCOUNT` = محتوى ملف المفتاح (الخطوة 3) كله
-   - `WEBHOOK_SECRET` = أي كلمة سر عشوائية طويلة
-5. افتح `sql/step9_push_webhook.sql` وغيّر `PUT_A_RANDOM_SECRET_HERE` لنفس `WEBHOOK_SECRET` وشغّله.
+**Field-operations platform for smart-home, CCTV, intercom & network installation teams.**
+Work orders · Site surveys · Warehouse · Technician tasks · Reports — in one bilingual app (Arabic / English).
 
-## 3) بناء الـ APK
-أي Push على `main` (أو Actions → Build Android APK → Run workflow) بيبني APK وينشره في **Releases → latest → ProSmart.apk**.
-التحديثات بتتركّب فوق النسخة القديمة (التوقيع ثابت).
+[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web-0b7285?style=for-the-badge)](#-tech-stack)
+[![Status](https://img.shields.io/badge/Status-Active%20development-19c6e6?style=for-the-badge)](#-project-status--updates)
+[![License](https://img.shields.io/badge/License-All%20Rights%20Reserved-c92a2a?style=for-the-badge)](#-copyright--ownership)
+[![Language](https://img.shields.io/badge/UI-العربية%20%7C%20English-003a5f?style=for-the-badge)](#-features)
 
-## 4) الموقع (GitHub Pages)
-Settings → Pages → Source: GitHub Actions. كل Push على main بينشر الموقع.
+[🇪🇬 النسخة العربية](README.ar.md)
 
-## تشغيل محلي
-npm install && npm run dev
+</div>
 
-## 5) إعادة تعيين باسورد مستخدم (للمالك بس)
-Supabase → Edge Functions → Deploy a new function → اسمها `admin-reset-password` بالظبط → الصق `supabase/functions/admin-reset-password/index.ts` → Deploy. (مفيش Secrets إضافية.)
-بعدها في الإعدادات → المستخدمين تلاقي زرار "باسورد" جنب كل مستخدم.
+---
 
-## 6) الأوفلاين
-- الفني يفتح أوامره ويشوف تفاصيلها ويسجل وصول/مهام/تقرير/توقيع/صور من غير نت، وكله بيترفع تلقائي لما النت يرجع (شريط أعلى الشاشة بيبين الحالة).
-- المخزن والمنتجات والمستخدمين والرسائل لازم نت (عشان الرصيد يفضل سليم).
-- أول تسجيل دخول لازم يكون أونلاين.
+## 📖 About
 
-## 7) المخزن
-- الرصيد = الوارد (استلام + مرتجعات) − المصروف لأوامر الشغل.
-- الصرف من صفحة "صرف"، والفني بيسجل "ركّبت / مرتجع" من صفحة الأمر، والمرتجع بيرجع للمخزن فورًا.
-- الفئات: بتتكتب عند الاستلام (أو من زرار القلم) وبتظهر كأزرار فلترة فوق قايمة المخزن.
-- مسح الباركود وQR بالكاميرا (أو كتابة الكود يدوي).
+**Pro Smart Field** is a production field-service app built for **Pro Smart**, a smart-home installation company in Egypt that installs smart-home systems, security cameras, intercoms and networks.
 
-## 8) المظهر
-زرار في الهيدر بيبدّل: أزرق (الأساسي) ← داكن ← فاتح.
+It replaces paper notes and WhatsApp chaos with one organised workflow: the office creates a work order, technicians get notified, record everything they do on site (photos, signatures, devices, cable lengths), the storekeeper tracks every item that leaves or returns to the warehouse, and the owner sees the whole picture in reports.
 
-## 9) التحديث التلقائي للتطبيق
-كل Push على `main` بيبني APK جديد وينشره في Release اسمه `latest` (فيه رقم البيلد). التطبيق بيفحص الـ Release عند الفتح وكل ما يرجع للواجهة، ولو في نسخة أحدث بيظهر شريط **"تحديث جديد متوفر — حدّث الآن"**: بينزّل الـ APK ويفتح شاشة التثبيت (ضغطة "تثبيت" واحدة، أندرويد بيفرضها). أول مرة بس هيطلب تسمح للتطبيق بالتثبيت من المصدر ده.
-- لازم الـ Repo يكون **Public** (التطبيق بيقرا الـ Release من غير توكن).
-- النسخة اللي عليها التحديث الأول لازم تتركّب يدوي مرة (لأن النسخ القديمة مفيهاش الميزة دي).
-- زرار "شوف في تحديث" في الإعدادات للفحص اليدوي.
+> Designed mobile-first for technicians on the road — works as an installable **Android app (APK)** and as a **web app**, with offline support for poor-signal sites.
 
-## 10) المعاينة والصيانة والكتالوج
-- **نوع الأمر**: عند إنشاء أمر الشغل بتختار تركيب / معاينة / صيانة. الصيانة ممكن تتربط بأمر سابق (بيملا بيانات العميل لوحده) أو تتكتب من جديد، والفني بيسجل "المشكلة" و"اللي حصل في الصيانة".
-- **المعاينة**: الفني بيفتح الأمر ← "وصلت" ← 3 أقسام (سمارت هوم / كاميرات / شبكات). في كل قسم يضيف غرف/مناطق بأسماء وطوابق، ويختار الأجهزة من الكتالوج. في السمارت هوم لكل غرفة أسلوب: واي فاي 2.4 / زيجبي (عدد الهابات) / لوحة KNX Style (طول × عرض × عمق). فيه إجمالي أجهزة لكل قسم وتصدير PDF للإداري.
-- **الكتالوج**: المالك (أو أي مستخدم المالك فعّل له "إدارة كتالوج أجهزة المعاينة" من الإعدادات ← المستخدمين) يضيف/يعدّل/يحذف الأجهزة في كل قسم من الإعدادات. المعاينات القديمة محفوظة بأسماء الأجهزة وقت التسجيل فمش بتتأثر.
-- **المخزن**: زرار "زوّد" على كل صنف (أمين المخزن والإداري والمالك) بيضيف على الرصيد كحركة مع مصدر التوريد (فاتورة/مورد/اسم الشغل). الرصيد نفسه مالوش تعديل يدوي. الصنف الجديد بيتضاف من "استلام بضاعة". أيقونة الساعة = سجل التوريد.
+---
 
-## 11) اللغة (عربي / إنجليزي)
-زرار `EN / ع` في الهيدر وفي صفحة الدخول، واختيار اللغة في الإعدادات (بيعمل إعادة تحميل للتطبيق). الشاشات الجديدة مترجمة مباشرة، والشاشات القديمة مترجمة بقاموس في `src/i18n/en.ts` (أي نص مش فيه بيفضل عربي). ملفات الـ PDF والتنبيهات اللي بتتولد من قاعدة البيانات لسه بالعربي.
+## 📸 Screenshots
+
+<div align="center">
+
+| Work orders | Site survey | Warehouse | Reports |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/orders.png" width="180"/> | <img src="docs/screenshots/survey.png" width="180"/> | <img src="docs/screenshots/stock.png" width="180"/> | <img src="docs/screenshots/reports.png" width="180"/> |
+
+</div>
+
+> 📌 Replace the files in [`docs/screenshots/`](docs/screenshots) with real screenshots using the same file names.
+
+---
+
+## ✨ Features
+
+### 📋 Work orders
+- 🛠️ **Three order types** — Installation · Site survey · Maintenance
+- 👥 Assign several technicians, pick a team leader, set date & time, client name / phone / address
+- 🔔 Instant push notification to every assigned technician
+- 📍 "Arrived" / "Departed" time stamps recorded on site
+- 🔗 Maintenance orders can be **linked to a previous order** (client data auto-filled)
+- 💬 WhatsApp button to confirm the appointment with the client
+
+### 🔍 Site survey (معاينة)
+- 🏠 Three sections: **Smart Home · CCTV · Network**
+- 🚪 Add rooms / areas with names and floors, pick devices from the catalog with quantities
+- 📡 Smart-home system chosen once per survey: **Wi-Fi 2.4 GHz**, **Zigbee** (number of hubs) or **KNX-style panels** (number of panels + length × width × depth for each panel)
+- 🧮 Automatic **totals per section**
+- 📄 Admin can review, edit and **export the survey as PDF**
+
+### 🗂️ Device catalog
+- 📚 **91 bilingual devices** out of the box — touch switches (1–4 gang), smart shutters, presence & motion sensors, smart locks, plugs, gas & water sensors, NVRs, 2 MP–8 MP cameras, cables (Cat6 / coax / power, per metre), 1 TB–10 TB hard drives, routers, access points, switches and racks
+- ✏️ Owner adds, edits and deletes devices from **Settings → Survey device catalog**
+- 🔐 Owner can grant any user the "manage survey catalog" permission
+
+### 📦 Warehouse
+- ➕ **Top-up** button with full audit trail: source (invoice / supplier / job name), balance before and after — balances can never be edited by hand
+- 🕘 Supply history: who added what, and from where
+- 📤 Issue → install → return flow; returns need **storekeeper approval** before going back to stock
+- 📷 Barcode / serial scanning with the phone camera
+- 🗃️ Nested categories (Brand › Type › Model)
+
+### 👷 Technicians
+- ✅ Per-technician tasks inside one order, each with its own bonus (added after admin approval)
+- 📸 Multiple site photos, client signature, IPs & passwords, cable lengths, follow-up flag
+- 📴 Offline mode — data is queued and synced when the signal returns
+
+### 📊 Reports & exports
+- 🏆 Who completes the most orders · who works most on sites
+- 📑 Export to **Excel** and **PDF**
+- ⏰ Manager reminders delivered to selected people
+
+### 🌍 Bilingual & themed
+- 🔤 Arabic (RTL) and English (LTR) — switch from the header, the login page or Settings
+- 🌗 Light / dark theme
+- 🔄 **In-app updates** — the app detects a new release and installs it over the old one
+
+---
+
+## 🧰 Tech stack
+
+| Layer | Technology |
+|---|---|
+| UI | ![React](https://img.shields.io/badge/React_18-20232a?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-646cff?logo=vite&logoColor=white) ![Tailwind](https://img.shields.io/badge/Tailwind_CSS_4-06b6d4?logo=tailwindcss&logoColor=white) |
+| Backend | ![Supabase](https://img.shields.io/badge/Supabase-3ecf8e?logo=supabase&logoColor=white) PostgreSQL · Auth · Row-Level Security · Edge Functions · pg_cron |
+| Mobile | ![Capacitor](https://img.shields.io/badge/Capacitor_6-119eff?logo=capacitor&logoColor=white) ![Android](https://img.shields.io/badge/Android-3ddc84?logo=android&logoColor=white) |
+| Notifications | Firebase Cloud Messaging |
+| Exports | ExcelJS · jsPDF · html2canvas |
+| Scanning | ZXing |
+| Offline | IndexedDB (idb-keyval) |
+| CI / CD | ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088ff?logo=githubactions&logoColor=white) → APK in Releases · GitHub Pages for the web app |
+
+---
+
+## 🚀 Installation & setup
+
+### 1) Database (Supabase → SQL Editor, in order)
+
+| File | Purpose |
+|---|---|
+| `sql/step7.sql` | Base schema (if not already applied) |
+| `sql/step8.sql` | Notifications + warehouse issue |
+| `sql/step10.sql` | Storekeeper permissions, order edit/delete |
+| `sql/step11.sql` | Owner role, order receipt, reminders (pg_cron), audit log |
+| `sql/step12.sql` | Warehouse logic (issue → install → return), engineer title |
+| `sql/step13.sql` | Return approval by storekeeper + WhatsApp button |
+| `sql/step14.sql` | Nested categories (migrates old ones automatically) |
+| `sql/step15.sql` | Order types, survey catalog, surveys, supply log |
+
+### 2) Push notifications (one time)
+1. **Firebase** → create a project → add an Android app with package `com.prosmart.field` → download `google-services.json`.
+2. **GitHub** → *Settings → Secrets and variables → Actions* → new secret `GOOGLE_SERVICES_JSON` with the file content.
+3. **Firebase** → *Project settings → Service accounts* → generate a private key.
+4. **Supabase → Edge Functions** → create `send-push` from `supabase/functions/send-push/index.ts`, then add secrets `FIREBASE_SERVICE_ACCOUNT` (the key file) and `WEBHOOK_SECRET` (any long random string).
+5. Put the same `WEBHOOK_SECRET` in `sql/step9_push_webhook.sql` and run it.
+
+### 3) Android APK
+Every push to `main` (or *Actions → Build Android APK → Run workflow*) builds the APK and publishes it at **Releases → latest → `ProSmart.apk`**.
+The APK is always signed with the fixed key in `ci/debug.keystore`, so every new build installs **over** the old one.
+
+> ⚠️ **Do not delete or regenerate `ci/debug.keystore`.** A different key makes Android reject updates with *"App not installed as package conflicts with an existing package"*. If that happens once (APK signed with an older key), uninstall the app and install the latest APK; updates work normally afterwards.
+
+### 4) Web app (GitHub Pages)
+*Settings → Pages → Source: GitHub Actions*. Every push to `main` deploys the site.
+
+### 5) Run locally
+```bash
+npm install
+npm run dev
+```
+
+### 6) Reset a user's password (owner only)
+Deploy the Edge Function `admin-reset-password` from `supabase/functions/admin-reset-password/index.ts`. A **Password** button then appears next to each user in *Settings → Users*.
+
+---
+
+## 🧭 System sections
+
+| Role | Sections |
+|---|---|
+| 👑 **Owner / Admin** | Work orders · Warehouse · Issue · Reports · Alerts · Settings (users, catalog, categories, permissions) |
+| 🛠️ **Technician** | My orders · Order details & survey · Alerts · Settings |
+| 📦 **Storekeeper** | Warehouse · Issue · Returns approval · Alerts · Settings |
+
+```
+src/
+├─ pages/        admin · technician · storekeeper screens
+├─ components/   SurveyForm · SurveyView · Scanner · Photos · UpdateBanner …
+├─ lib/          survey · export · offline · push · update · supabase
+├─ i18n/         Arabic ⇄ English
+sql/             database migrations (step7 → step15)
+supabase/        Edge Functions
+ci/              APK signing key + Android patch scripts
+.github/         build & deploy workflows
+```
+
+---
+
+## 📌 Project status & updates
+
+**Status:** 🟢 Active development — in daily use.
+
+### Latest
+- ✅ Order types: Installation / Site survey / Maintenance
+- ✅ Site survey with Smart Home · CCTV · Network sections and automatic totals
+- ✅ Smart-home setup per survey: Wi-Fi 2.4, Zigbee hubs, or KNX-style panels with the size of **each** panel
+- ✅ Bilingual device catalog (91 devices) managed by the owner
+- ✅ Warehouse top-up with supply source and before / after balance
+- ✅ Arabic / English interface
+- ✅ Signing-key guard in CI so updates always install over the old version
+
+### Planned
+- ⏳ Translate the remaining database-generated PDFs and alerts to English
+
+---
+
+## © Copyright & ownership
+
+**Copyright © 2026 MOHAMED IBRAHEM. All rights reserved.**
+
+Pro Smart Field — its source code, design, database schema, logo usage, documentation and every related asset — was **designed and developed solely by MOHAMED IBRAHEM** (Pro Smart).
+
+- ❌ You may **not** copy, redistribute, resell, sublicense, or publish this project or any part of it.
+- ❌ You may **not** modify it and present it as your own work.
+- ❌ You may **not** remove or alter this notice or the developer attribution.
+- ❌ You may **not** claim authorship or ownership of this project in any form.
+- ✅ Use is allowed only with the **written permission** of the owner.
+
+Any unauthorised use, copying or false attribution is a violation of the author's rights and may be pursued legally. See [LICENSE](LICENSE).
+
+The **Pro Smart** name and logo are trademarks of their owner.
+
+<div align="center">
+
+**Developed with ❤️ by MOHAMED IBRAHEM — Pro Smart, Egypt**
+
+*Smart Living, Simplified.*
+
+</div>

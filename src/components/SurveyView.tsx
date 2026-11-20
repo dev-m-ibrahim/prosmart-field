@@ -6,7 +6,7 @@ import { t } from '../i18n';
 import { fmt } from '../ui';
 import SurveyForm from './SurveyForm';
 import {
-  SECTIONS, normSurvey, nm, roomDetail, roomWord, secLabel, surveyHtml, totals, unitLabel, type SurveyData,
+  SECTIONS, cfgDetail, normSurvey, nm, roomWord, secLabel, surveyHtml, totals, unitLabel, type SurveyData,
 } from '../lib/survey';
 
 interface O { id: string; order_no: number; client_name: string; location_text: string; scheduled_at: string }
@@ -51,10 +51,10 @@ export default function SurveyView({ order }: { order: O }) {
               {SECTIONS.filter((s) => d[s].length).map((s) => (
                 <div key={s} className="space-y-1">
                   <b className="text-brand">{secLabel(s)}</b>
+                  {s === 'smart_home' && <div className="text-xs text-amber-200">{cfgDetail(d.smart_cfg)}</div>}
                   {d[s].map((r) => (
                     <div key={r.id} className="rounded-lg bg-navy-900 p-2">
                       <div className="font-bold">{r.name || roomWord(s)}{r.floor ? ` · ${r.floor}` : ''}</div>
-                      {roomDetail(s, r) && <div className="text-xs text-amber-200">{roomDetail(s, r)}</div>}
                       <div className="text-fg/80">{r.items.map((i) => `${nm(i)} × ${i.qty}${unitLabel(i.unit) ? ' ' + unitLabel(i.unit) : ''}`).join(' · ') || '—'}</div>
                     </div>
                   ))}

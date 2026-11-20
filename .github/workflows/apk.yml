@@ -50,7 +50,9 @@ jobs:
 
       # fixed signing key => every new APK installs as an update over the old one (no uninstall needed)
       - name: Use fixed signing key
-        run: mkdir -p ~/.android && cp ci/debug.keystore ~/.android/debug.keystore
+        run: |
+          test -f ci/debug.keystore || { echo "::error::ci/debug.keystore is missing from the repo - push it, otherwise updates will not install"; exit 1; }
+          mkdir -p ~/.android && cp ci/debug.keystore ~/.android/debug.keystore
 
       - name: Build APK
         working-directory: android
@@ -58,6 +60,14 @@ jobs:
 
       - name: Name the APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk ProSmart.apk
+
+      # guard: the APK must carry the fixed key, or phones will reject it as an update
+      - name: Verify signing certificate
+        run: |
+          APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | sort -V | tail -1)
+          OUT=$($APKSIGNER verify --print-certs ProSmart.apk)
+          echo "$OUT"
+          echo "$OUT" | grep -qi "05b8f613bb35d54711623e1d4f97f5386876e3fcc5698ce14bdc8819803fc060" || { echo "::error::APK is NOT signed with the Pro Smart fixed key"; exit 1; }
 
       - uses: actions/upload-artifact@v4
         with:

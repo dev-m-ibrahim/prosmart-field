@@ -4,8 +4,8 @@ import { supabase } from '../lib/supabase';
 import { t } from '../i18n';
 import { L, btn, card, inp } from '../ui';
 import {
-  SECTIONS, emptySurvey, grp, loadCatalog, nm, normSurvey, roomDetail, roomWord, secLabel, styleHint, styleLabel,
-  totals, uid, unitLabel, validate, type CatItem, type Room, type Section, type Style, type SurveyData,
+  SECTIONS, emptySurvey, grp, loadCatalog, nm, normSurvey, roomWord, secLabel, styleHint, styleLabel,
+  totals, uid, unitLabel, validate, type CatItem, type Panel, type Room, type Section, type SmartCfg, type Style, type SurveyData,
 } from '../lib/survey';
 
 const secIcon = { smart_home: Home, cctv: Video, network: Network } as const;
@@ -85,7 +85,15 @@ export default function SurveyForm({
   const setRooms = (rs: Room[]) => edit((d) => ({ ...d, [sec]: rs }));
   const upd = (id: string, patch: Partial<Room>) => setRooms(rooms.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   const addRoom = () =>
-    setRooms([...rooms, { id: uid(), name: '', floor: rooms.length ? rooms[rooms.length - 1].floor : '', items: [], ...(sec === 'smart_home' ? { style: 'wifi' as Style } : {}) }]);
+    setRooms([...rooms, { id: uid(), name: '', floor: rooms.length ? rooms[rooms.length - 1].floor : '', items: [] }]);
+  const cfg = data.smart_cfg;
+  const setCfg = (patch: Partial<SmartCfg>) => edit((d) => ({ ...d, smart_cfg: { ...d.smart_cfg, ...patch } }));
+  const setPanelCount = (n: number) => {
+    const k = Math.max(1, Math.min(50, Math.floor(n) || 1));
+    const cur = cfg.panels;
+    setCfg({ panels: k <= cur.length ? cur.slice(0, k) : [...cur, ...Array.from({ length: k - cur.length }, () => ({ l: 0, w: 0, d: 0 }))] });
+  };
+  const setPanel = (i: number, patch: Partial<Panel>) => setCfg({ panels: cfg.panels.map((p, j) => (j === i ? { ...p, ...patch } : p)) });
   const addItem = (rid: string, c: CatItem) =>
     setRooms(rooms.map((r) => {
       if (r.id !== rid) return r;
@@ -141,6 +149,45 @@ export default function SurveyForm({
         {[t('الدور الأرضي', 'Ground floor'), t('الدور الأول', 'First floor'), t('الدور الثاني', 'Second floor'), t('الدور الثالث', 'Third floor'), t('البدروم', 'Basement'), t('السطح', 'Roof'), ...floors].map((f) => (<option key={f} value={f} />))}
       </datalist>
 
+      {sec === 'smart_home' && (
+        <div className={card + ' space-y-2'}>
+          <h3 className="text-sm font-bold">{t('نظام السمارت هوم في المعاينة', 'Smart-home system for this survey')}</h3>
+          <div className="grid grid-cols-3 gap-2">
+            {STYLES.map((s) => (
+              <button key={s} type="button" onClick={() => setCfg({ style: s })}
+                className={`rounded-xl border px-1 py-2 text-xs ${cfg.style === s ? 'border-brand bg-brand/15 text-brand' : 'border-navy-600'}`}>
+                {styleLabel(s)}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-fg/60">{styleHint(cfg.style)}</p>
+          {cfg.style === 'zigbee' && (
+            <L t={t('عدد الهابات المطلوبة', 'Hubs needed')}>
+              <input type="number" min={1} className={inp} value={cfg.hubs} onChange={(e) => setCfg({ hubs: Number(e.target.value) })} />
+            </L>
+          )}
+          {cfg.style === 'panel' && (
+            <>
+              <L t={t('عدد اللوحات في المعاينة', 'Number of panels')}>
+                <input type="number" min={1} max={50} className={inp} value={cfg.panels.length} onChange={(e) => setPanelCount(Number(e.target.value))} />
+              </L>
+              {cfg.panels.map((p, i) => (
+                <div key={i} className="space-y-1 rounded-xl bg-navy-800 p-2">
+                  {cfg.panels.length > 1 && <div className="text-xs font-bold text-brand">{t('لوحة', 'Panel')} {i + 1}</div>}
+                  <div className="grid grid-cols-3 gap-2">
+                    {([['l', t('الطول (سم)', 'Length (cm)')], ['w', t('العرض (سم)', 'Width (cm)')], ['d', t('العمق (سم)', 'Depth (cm)')]] as const).map(([k, lab]) => (
+                      <L key={k} t={lab}>
+                        <input type="number" min={0} step="any" className={inp} value={p[k]} onChange={(e) => setPanel(i, { [k]: Number(e.target.value) })} />
+                      </L>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+
       {rooms.map((r) => (
         <div key={r.id} className={card + ' space-y-3'}>
           <div className="flex gap-2">
@@ -148,35 +195,6 @@ export default function SurveyForm({
             <input list="floors" className={inp} placeholder={t('الدور', 'Floor')} value={r.floor} onChange={(e) => upd(r.id, { floor: e.target.value })} />
             <button type="button" aria-label={t('حذف', 'Delete')} onClick={() => delRoom(r)} className="rounded-xl border border-red-300/50 px-3 text-red-200"><Trash2 size={16} /></button>
           </div>
-
-          {sec === 'smart_home' && (
-            <div className="space-y-2">
-              <div className="grid grid-cols-3 gap-2">
-                {STYLES.map((s) => (
-                  <button key={s} type="button" onClick={() => upd(r.id, { style: s, ...(s === 'zigbee' && !r.hubs ? { hubs: 1 } : {}), ...(s === 'panel' && !r.panel ? { panel: { l: 0, w: 0, d: 0 } } : {}) })}
-                    className={`rounded-xl border px-1 py-2 text-xs ${r.style === s ? 'border-brand bg-brand/15 text-brand' : 'border-navy-600'}`}>
-                    {styleLabel(s)}
-                  </button>
-                ))}
-              </div>
-              {r.style && <p className="text-xs text-fg/60">{styleHint(r.style)}</p>}
-              {r.style === 'zigbee' && (
-                <L t={t('عدد الهابات المطلوبة', 'Hubs needed')}>
-                  <input type="number" min={1} className={inp} value={r.hubs ?? 1} onChange={(e) => upd(r.id, { hubs: Number(e.target.value) })} />
-                </L>
-              )}
-              {r.style === 'panel' && (
-                <div className="grid grid-cols-3 gap-2">
-                  {([['l', t('الطول (سم)', 'Length (cm)')], ['w', t('العرض (سم)', 'Width (cm)')], ['d', t('العمق (سم)', 'Depth (cm)')]] as const).map(([k, lab]) => (
-                    <L key={k} t={lab}>
-                      <input type="number" min={0} step="any" className={inp} value={r.panel?.[k] ?? 0}
-                        onChange={(e) => upd(r.id, { panel: { l: 0, w: 0, d: 0, ...r.panel, [k]: Number(e.target.value) } })} />
-                    </L>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
 
           <div className="space-y-1.5">
             {r.items.map((i, idx) => (
@@ -219,7 +237,6 @@ export default function SurveyForm({
           ) : (
             <button type="button" onClick={() => { setPick(r.id); setQ(''); }} className="flex items-center gap-1 text-sm text-brand"><Plus size={16} /> {t('إضافة جهاز', 'Add device')}</button>
           )}
-          {roomDetail(sec, r) && <p className="text-xs text-fg/60">{roomDetail(sec, r)}</p>}
         </div>
       ))}
 

@@ -98,4 +98,24 @@ for g in ('android/app/build.gradle',):
     s = re.sub(r'versionCode\s+\d+', f'versionCode {vc}', s)
     s = re.sub(r'versionName\s+"[^"]*"', f'versionName "1.0.{vc}"', s)
     open(g, 'w').write(s)
+
+# ---- 5. fixed signing key, set explicitly in gradle (not only via ~/.android) ----
+# Every build must be signed with ci/debug.keystore, otherwise Android refuses to update the installed app
+# ("App not installed as package conflicts with an existing package").
+g = 'android/app/build.gradle'
+s = open(g).read()
+if 'prosmart-fixed-key' not in s:
+    block = (
+        '\n    // prosmart-fixed-key\n'
+        '    signingConfigs {\n'
+        '        debug {\n'
+        '            storeFile file("../../ci/debug.keystore")\n'
+        '            storePassword "android"\n'
+        '            keyAlias "androiddebugkey"\n'
+        '            keyPassword "android"\n'
+        '        }\n'
+        '    }\n')
+    s, n = re.subn(r'(\nandroid\s*\{)', r'\1' + block.replace('\\', '\\\\'), s, count=1)
+    assert n == 1, 'could not find the android { block in app/build.gradle'
+    open(g, 'w').write(s)
 print('patched android project, versionCode', vc)
