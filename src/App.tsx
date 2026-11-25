@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { Bell, ClipboardList, FileText, Package, PackageMinus, Settings as Cog, Undo2, Wrench } from 'lucide-react';
+import { Bell, Car, ClipboardList, FileText, MessageSquareText, Package, PackageMinus, Settings as Cog, Undo2, Wrench } from 'lucide-react';
 import { useAuth } from './auth';
 import { homePath, type Role } from './types';
 import Shell, { type NavItem } from './components/Shell';
@@ -17,19 +17,32 @@ import Settings from './pages/Settings';
 import Orders from './pages/admin/Orders';
 import TechOrders from './pages/TechOrders';
 import TechOrder from './pages/TechOrder';
+import Trips from './pages/admin/Trips';
+import Feedback from './pages/admin/Feedback';
+import MyTrips from './pages/driver/MyTrips';
+import TechTrips from './pages/TechTrips';
+import ClientFeedback from './pages/ClientFeedback';
 
 const adminNav: NavItem[] = [
   { to: '/admin', label: 'الأوامر', icon: ClipboardList, end: true },
   { to: '/admin/stock', label: 'المخزن', icon: Package },
   { to: '/admin/issue', label: 'صرف', icon: PackageMinus },
+  { to: '/admin/trips', label: 'المشاوير', icon: Car },
+  { to: '/admin/feedback', label: 'آراء العملاء', icon: MessageSquareText },
   { to: '/admin/reports', label: 'التقارير', icon: FileText },
   { to: '/admin/inbox', label: 'التنبيهات', icon: Bell },
   { to: '/admin/settings', label: 'الإعدادات', icon: Cog },
 ];
 const techNav: NavItem[] = [
   { to: '/tech', label: 'أوامري', icon: Wrench, end: true },
+  { to: '/tech/trips', label: 'المشاوير', icon: Car },
   { to: '/tech/inbox', label: 'التنبيهات', icon: Bell },
   { to: '/tech/settings', label: 'الإعدادات', icon: Cog },
+];
+const driverNav: NavItem[] = [
+  { to: '/driver', label: 'مشاويري', icon: Car, end: true },
+  { to: '/driver/inbox', label: 'التنبيهات', icon: Bell },
+  { to: '/driver/settings', label: 'الإعدادات', icon: Cog },
 ];
 const storeNav: NavItem[] = [
   { to: '/store', label: 'المخزن', icon: Package, end: true },
@@ -66,6 +79,8 @@ export default function App() {
       <PushBridge />
       <Routes>
         <Route path="/login" element={<Login />} />
+        {/* public page opened from the QR code on the technician's phone — no login */}
+        <Route path="/f/:token" element={<ClientFeedback />} />
         <Route path="/" element={<Home />} />
 
         <Route
@@ -83,6 +98,8 @@ export default function App() {
           <Route path="inbox/:nid" element={<InboxItem />} />
           <Route path="settings" element={<Settings />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="trips" element={<Trips />} />
+          <Route path="feedback" element={<Feedback />} />
         </Route>
 
         <Route
@@ -94,10 +111,25 @@ export default function App() {
           }
         >
           <Route index element={<TechOrders />} />
+          <Route path="trips" element={<TechTrips />} />
           <Route path="inbox" element={<Inbox />} />
           <Route path="inbox/:nid" element={<InboxItem />} />
           <Route path="settings" element={<Settings />} />
           <Route path=":id" element={<TechOrder />} />
+        </Route>
+
+        <Route
+          path="/driver"
+          element={
+            <RequireRole roles={['driver']}>
+              <Shell nav={driverNav} />
+            </RequireRole>
+          }
+        >
+          <Route index element={<MyTrips />} />
+          <Route path="inbox" element={<Inbox />} />
+          <Route path="inbox/:nid" element={<InboxItem />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
 
         <Route

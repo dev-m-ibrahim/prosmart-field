@@ -46,7 +46,7 @@ export default function InboxItem() {
   }, [nid, uid]);
 
   // technicians open their order at /tech/:id; admins see it in the orders list
-  const orderLink = m?.work_order_id ? (profile?.role === 'technician' ? `/tech/${m.work_order_id}` : '/admin') : null;
+  const orderLink = m?.work_order_id ? (profile?.role === 'technician' ? `/tech/${m.work_order_id}` : profile?.role === 'admin' ? '/admin' : null) : null;
 
   return (
     <div className="space-y-4">

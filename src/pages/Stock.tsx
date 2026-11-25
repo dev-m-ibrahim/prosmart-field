@@ -33,8 +33,8 @@ export default function Stock() {
   const [adding, setAdding] = useState<string | null>(null);
   const [hist, setHist] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
-  const { profile } = useAuth();
-  const canEdit = profile?.role === 'admin' || !!profile?.is_owner; // owner + admin only
+  const { isStockManager } = useAuth();
+  const canEdit = isStockManager; // only the stock manager (andro@prosmart.app) adds / edits / deletes stock
   const [msg, setMsg] = useState('');
   const remove = async (r: Bal) => {
     if (!confirm(`حذف "${r.name}" نهائيًا من المخزن؟`)) return;
@@ -70,6 +70,11 @@ export default function Stock() {
 
   return (
     <div>
+      {!canEdit && (
+        <p className="mb-3 rounded-lg bg-navy-800 px-3 py-2 text-xs text-fg/70">
+          عرض فقط — الإضافة والتعديل والحذف في المخزن لمدير المخزن بس. للصرف استخدم تبويب «صرف» وهيوصل لمدير المخزن للموافقة.
+        </p>
+      )}
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold">المخزن</h1>
         <div className="flex items-center gap-2">
@@ -79,15 +84,17 @@ export default function Stock() {
           <button aria-label={t('سجل التوريد', 'Receipts log')} className="rounded-xl border border-navy-600 px-3 py-2.5" onClick={() => setHist(!hist)}>
             <History size={16} />
           </button>
-          <button className={btn + ' flex items-center gap-1'} onClick={() => setOpen(!open)}>
-            <Plus size={16} />
-            استلام بضاعة
-          </button>
+          {canEdit && (
+            <button className={btn + ' flex items-center gap-1'} onClick={() => setOpen(!open)}>
+              <Plus size={16} />
+              استلام بضاعة
+            </button>
+          )}
         </div>
       </div>
       {manage && canEdit && <CategoryManager cats={cats} reload={load} />}
       {hist && <Receipts />}
-      {open && (
+      {open && canEdit && (
         <Receive
           cats={cats}
           reloadCats={async () => setCats(await loadCats())}
@@ -125,11 +132,11 @@ export default function Stock() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => setAdding(adding === r.product_id ? null : r.product_id)} className="flex items-center gap-1 rounded-lg border border-brand px-2 py-1.5 text-xs text-brand">
-                  <PackagePlus size={14} /> {t('زوّد', 'Add')}
-                </button>
                 {canEdit && (
                   <>
+                    <button onClick={() => setAdding(adding === r.product_id ? null : r.product_id)} className="flex items-center gap-1 rounded-lg border border-brand px-2 py-1.5 text-xs text-brand">
+                      <PackagePlus size={14} /> {t('زوّد', 'Add')}
+                    </button>
                     <button aria-label="تعديل" onClick={() => setEditing(editing === r.product_id ? null : r.product_id)} className="rounded-lg border border-navy-600 p-1.5">
                       <Pencil size={14} />
                     </button>
@@ -143,7 +150,7 @@ export default function Stock() {
                 </span>
               </div>
             </div>
-            {adding === r.product_id && <AddQty row={r} onDone={() => { setAdding(null); load(); }} />}
+            {canEdit && adding === r.product_id && <AddQty row={r} onDone={() => { setAdding(null); load(); }} />}
             {editing === r.product_id && (
               <EditProduct row={r} cats={cats} reloadCats={async () => setCats(await loadCats())} onDone={() => { setEditing(null); load(); }} />
             )}

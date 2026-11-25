@@ -83,14 +83,14 @@ export default function Shell({ nav }: { nav: NavItem[] }) {
         className="fixed inset-x-0 bottom-0 z-10 border-t border-navy-700 bg-navy-900/95 backdrop-blur"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
-        <div className="mx-auto flex max-w-3xl">
+        <div className="mx-auto flex max-w-3xl overflow-x-auto">
           {nav.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex flex-1 flex-col items-center gap-1 py-2.5 text-xs ${
+                `flex min-w-[68px] flex-1 flex-col items-center gap-1 py-2.5 text-xs whitespace-nowrap ${
                   isActive ? 'text-brand' : 'text-fg/60'
                 }`
               }

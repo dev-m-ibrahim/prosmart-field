@@ -5,7 +5,7 @@ import { waLink } from '../lib/phone';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../auth';
 import Photos from '../components/Photos';
-import SignaturePad from '../components/SignaturePad';
+import FeedbackQR from '../components/FeedbackQR';
 import Materials from '../components/Materials';
 import SurveyForm from '../components/SurveyForm';
 import { t } from '../i18n';
@@ -39,7 +39,6 @@ const emptyR = {
   cameras_count: 0,
   intercoms_count: 0,
   cable_length_m: 0,
-  client_feedback: '',
   needs_followup: false,
   followup_notes: '',
 };
@@ -54,7 +53,7 @@ export default function TechOrder() {
   const [creds, setCreds] = useState<Cred[]>([]);
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
-  const [sig, setSig] = useState('');
+  const [fbDone, setFbDone] = useState(false); // the customer already sent his opinion + signature from his own phone
   const [tasks, setTasks] = useState<{ id: string; title: string; bonus: number; status: string; tech_note: string | null }[]>([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const surveySave = useRef<(() => Promise<boolean>) | null>(null);
@@ -78,7 +77,6 @@ export default function TechOrder() {
     setTasks(tk ?? []);
     const { data: rep } = await supabase.from('site_reports').select('*').eq('work_order_id', id!).maybeSingle();
     if (rep) {
-      setSig(rep.signature_path ?? '');
       setR({
         work_done: rep.work_done ?? '',
         maint_issue: rep.maint_issue ?? '',
@@ -86,7 +84,6 @@ export default function TechOrder() {
         cameras_count: rep.cameras_count,
         intercoms_count: rep.intercoms_count,
         cable_length_m: Number(rep.cable_length_m),
-        client_feedback: rep.client_feedback ?? '',
         needs_followup: rep.needs_followup,
         followup_notes: rep.followup_notes ?? '',
       });
@@ -133,7 +130,7 @@ export default function TechOrder() {
     setMsg('');
     const { data, error } = await supabase
       .from('site_reports')
-      .upsert({ work_order_id: id!, ...r, signature_path: sig || null }, { onConflict: 'work_order_id' })
+      .upsert({ work_order_id: id!, ...r }, { onConflict: 'work_order_id' })
       .select('id')
       .single();
     if (error || !data) {
@@ -174,6 +171,7 @@ export default function TechOrder() {
   };
 
   const depart = async () => {
+    if (!fbDone && !window.confirm('العميل لسه ماسجّلش رأيه وتوقيعه (QR). تنصرف برضه؟')) return;
     if (!(await save())) return;
     const { error } = await supabase
       .from('work_order_techs')
@@ -301,6 +299,10 @@ export default function TechOrder() {
       )}
 
       {me?.arrived_at && o.kind !== 'survey' && (
+        <FeedbackQR orderId={o.id} clientName={o.client_name} clientPhone={o.client_phone} orderNo={o.order_no} onStatus={setFbDone} />
+      )}
+
+      {me?.arrived_at && o.kind !== 'survey' && (
         <div className={card + ' space-y-3'}>
           <h2 className="font-bold">{o.kind === 'maintenance' ? t('تقرير الصيانة', 'Maintenance report') : 'تقرير الموقع'}</h2>
           {o.kind === 'maintenance' && (
@@ -340,9 +342,6 @@ export default function TechOrder() {
             </button>
           </div>
 
-          <L t="رأي العميل">
-            <textarea rows={2} className={inp} value={r.client_feedback} onChange={(e) => setR({ ...r, client_feedback: e.target.value })} />
-          </L>
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={r.needs_followup} onChange={(e) => setR({ ...r, needs_followup: e.target.checked })} />
             لسه في تكملة للسايت
@@ -350,10 +349,6 @@ export default function TechOrder() {
           {r.needs_followup && (
             <textarea rows={2} placeholder="إيه المتبقي؟" className={inp} value={r.followup_notes} onChange={(e) => setR({ ...r, followup_notes: e.target.value })} />
           )}
-          <div className="space-y-1">
-            <span className="text-sm text-fg/70">توقيع العميل {sig && '✓'}</span>
-            <SignaturePad orderId={o.id} onSaved={setSig} />
-          </div>
           {msg && <p className="text-sm text-brand">{msg}</p>}
           <div className="flex gap-2">
             <button disabled={busy} onClick={save} className="flex-1 rounded-xl border border-brand py-2.5 font-bold text-brand disabled:opacity-50">

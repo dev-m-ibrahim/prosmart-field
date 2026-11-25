@@ -17,6 +17,13 @@ interface Rep {
   followup_notes: string | null;
   signature_path: string | null;
 }
+interface Fb {
+  rating: number;
+  comment: string | null;
+  signer_name: string | null;
+  signature_png: string;
+  submitted_at: string;
+}
 interface Out {
   name: string;
   track_serial: boolean;
@@ -39,6 +46,7 @@ export default function OrderDetails({ order }: { order: OrderLite }) {
   const [rep, setRep] = useState<Rep | null>(null);
   const [sig, setSig] = useState('');
   const [out, setOut] = useState<Out[]>([]);
+  const [fb, setFb] = useState<Fb | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -51,6 +59,8 @@ export default function OrderDetails({ order }: { order: OrderLite }) {
         const { data: u } = await supabase.storage.from('work-files').createSignedUrl(data.signature_path, 3600);
         setSig(u?.signedUrl ?? '');
       }
+      const { data: f } = await supabase.from('client_feedback').select('rating,comment,signer_name,signature_png,submitted_at').eq('work_order_id', order.id).maybeSingle();
+      setFb((f as Fb | null) ?? null);
       const { data: m } = await supabase.rpc('order_stock_lines', { wo: order.id });
       setOut((m ?? []) as Out[]);
       setLoaded(true);
@@ -68,10 +78,10 @@ export default function OrderDetails({ order }: { order: OrderLite }) {
           ${r.maint_issue ? `<p><b>المشكلة:</b> ${esc(r.maint_issue)}</p>` : ''}
           <p><b>اللي اتعمل:</b> ${esc(r.work_done)}</p>
           <p>مديولات: <b>${r.modules_count}</b> · كاميرات: <b>${r.cameras_count}</b> · انتركم: <b>${r.intercoms_count}</b> · سلك: <b>${r.cable_length_m} م</b></p>
-          <p><b>رأي العميل:</b> ${esc(r.client_feedback)}</p>
+          ${fb ? '' : `<p><b>رأي العميل:</b> ${esc(r.client_feedback)}</p>`}
           ${r.needs_followup ? `<p><b>متبقي:</b> ${esc(r.followup_notes)}</p>` : ''}` : '<p>لا يوجد تقرير موقع بعد.</p>'}
         ${out.length ? `<p><b>الخامات:</b></p><ul>${out.map((o) => `<li>${esc(o.name)} — مصروف ${Number(o.issued)} · مركّب ${Number(o.installed)} · مرتجع ${Number(o.returned)}</li>`).join('')}</ul>` : ''}
-        ${sig ? `<p><b>توقيع العميل:</b></p><img src="${sig}" crossorigin="anonymous" style="width:260px;border:1px solid #ccc" />` : ''}
+        ${fb ? `<p><b>رأي العميل (${'★'.repeat(fb.rating)}${'☆'.repeat(5 - fb.rating)}):</b> ${esc(fb.comment ?? '—')}</p><p><b>توقيع العميل${fb.signer_name ? ' — ' + esc(fb.signer_name) : ''}:</b></p><img src="${fb.signature_png}" style="width:260px;border:1px solid #ccc" />` : sig ? `<p><b>توقيع العميل:</b></p><img src="${sig}" crossorigin="anonymous" style="width:260px;border:1px solid #ccc" />` : ''}
       `);
     } finally { setBusy(false); }
   };
@@ -88,13 +98,25 @@ export default function OrderDetails({ order }: { order: OrderLite }) {
               {rep.maint_issue && <p className="whitespace-pre-wrap"><b>{t('المشكلة', 'Problem')}:</b> {rep.maint_issue}</p>}
               {rep.work_done && <p className="whitespace-pre-wrap">{rep.work_done}</p>}
               <p className="text-fg/70">مديولات {rep.modules_count} · كاميرات {rep.cameras_count} · انتركم {rep.intercoms_count} · سلك {rep.cable_length_m} م</p>
-              {rep.client_feedback && <p><b>رأي العميل:</b> {rep.client_feedback}</p>}
+              {!fb && rep.client_feedback && <p><b>رأي العميل:</b> {rep.client_feedback}</p>}
               {rep.needs_followup && <p className="text-amber-200">متابعة مطلوبة: {rep.followup_notes}</p>}
-              <div>
-                <b>توقيع العميل:</b>
-                {sig ? <img src={sig} style={{ background: '#fff' }} className="mt-1 w-56 rounded-lg" /> : <span className="text-fg/60"> لم يتم</span>}
-              </div>
+              {!fb && (
+                <div>
+                  <b>توقيع العميل:</b>
+                  {sig ? <img src={sig} style={{ background: '#fff' }} className="mt-1 w-56 rounded-lg" /> : <span className="text-fg/60"> لم يتم</span>}
+                </div>
+              )}
             </>
+          )}
+          {fb ? (
+            <div className="space-y-1 rounded-lg border border-brand/40 p-2">
+              <b>رأي العميل (من موبايله):</b> <span className="text-amber-300">{'★'.repeat(fb.rating)}{'☆'.repeat(5 - fb.rating)}</span>
+              {fb.comment && <p className="whitespace-pre-wrap">{fb.comment}</p>}
+              <div className="text-xs text-fg/60">{fb.signer_name ? `${fb.signer_name} · ` : ''}{fmt(fb.submitted_at)}</div>
+              <img src={fb.signature_png} style={{ background: '#fff' }} className="w-56 rounded-lg" />
+            </div>
+          ) : (
+            loaded && <p className="text-fg/60">العميل لسه ماسجّلش رأيه (QR).</p>
           )}
           {out.length > 0 && (
             <div>

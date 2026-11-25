@@ -99,6 +99,17 @@ It replaces paper notes and scattered WhatsApp messages with one organised workf
 - 📸 Multiple site photos, client signature, IPs & passwords, cable lengths, follow-up flag
 - 📴 Offline mode — data is queued and synced when the signal returns
 
+### 🔐 Stock permissions & issue approval
+- Only **andro@prosmart.app** can add / edit / delete stock (enforced in the database).
+- Any admin / storekeeper **requests** an issue; stock is deducted only after that account approves it.
+
+### 🚗 Drivers
+- New **driver** role: admins create rides (driver + technicians + destination + time); the driver accepts / starts / finishes them and technicians are notified.
+
+### 🧾 Customer opinion & signature via QR
+- The technician shows a **QR code**; the customer scans it, rates, writes his opinion and signs on his own phone.
+- Admins see every opinion (customer name + work-order number) under **Customer feedback**.
+
 ### 📊 Reports & exports
 - 🏆 Who completes the most orders · who works most on sites
 - 📑 Export to **Excel** and **PDF**

@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'technician' | 'storekeeper';
+export type Role = 'admin' | 'technician' | 'storekeeper' | 'driver';
 
 export interface Profile {
   id: string;
@@ -17,7 +17,8 @@ export const roleLabel: Record<Role, string> = {
   admin: 'إداري',
   technician: 'فني',
   storekeeper: 'أمين مخزن',
+  driver: 'سائق',
 };
 
 export const homePath = (role: Role): string =>
-  role === 'admin' ? '/admin' : role === 'technician' ? '/tech' : '/store';
+  role === 'admin' ? '/admin' : role === 'technician' ? '/tech' : role === 'driver' ? '/driver' : '/store';

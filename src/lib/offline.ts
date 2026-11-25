@@ -17,7 +17,7 @@ const db = createStore('prosmart-offline', 'kv');
 const REST = `${SUPABASE_URL}/rest/v1/`;
 const STORAGE = `${SUPABASE_URL}/storage/v1/object/`;
 
-const READ_RPC = new Set(['tech_report', 'site_report', 'order_stock_lines']);
+const READ_RPC = new Set(['tech_report', 'site_report', 'order_stock_lines', 'trips_list', 'get_feedback_token', 'order_feedback_status']);
 const WRITE_RPC = new Set(['finish_order', 'submit_task', 'report_stock_usage']);
 const NO_CACHE_TABLES = new Set(['report_credentials']); // device passwords are never cached on the phone
 const BLOCK_TABLES = new Set(['stock_movements', 'stock_items', 'products', 'profiles', 'notifications', 'device_tokens']);

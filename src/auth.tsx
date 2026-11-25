@@ -3,7 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 import type { Profile } from './types';
 import { unregisterPush } from './lib/push';
-import { AUTH_STORAGE_KEY } from './lib/config';
+import { AUTH_STORAGE_KEY, STOCK_MANAGER_EMAIL } from './lib/config';
 import { setCurrentUser } from './lib/offline';
 
 interface AuthCtx {
@@ -11,6 +11,7 @@ interface AuthCtx {
   profile: Profile | null;
   loading: boolean;
   notice: string | null;
+  isStockManager: boolean; // andro@prosmart.app only: edits stock + approves issue requests
   signIn: (email: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
 }
@@ -110,8 +111,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const isStockManager = !!profile && (session?.user.email ?? '').toLowerCase() === STOCK_MANAGER_EMAIL;
+
   return (
-    <Ctx.Provider value={{ session, profile, loading, notice, signIn, signOut }}>
+    <Ctx.Provider value={{ session, profile, loading, notice, isStockManager, signIn, signOut }}>
       {children}
     </Ctx.Provider>
   );
