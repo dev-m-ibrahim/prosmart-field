@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FileDown, Pencil } from 'lucide-react';
+import { FileDown, FileSpreadsheet, Pencil, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { exportPdf } from '../lib/export';
+import { exportSurveyForQuotation, shareSurveyExcel } from '../lib/surveyExcel';
 import { t } from '../i18n';
 import { fmt } from '../ui';
 import SurveyForm from './SurveyForm';
@@ -31,6 +32,18 @@ export default function SurveyView({ order }: { order: O }) {
     if (!d) return;
     setBusy(true);
     try { await exportPdf(`survey-${order.order_no}`, surveyHtml({ ...order, when: fmt(order.scheduled_at) }, cust, d)); } finally { setBusy(false); }
+  };
+
+  const meta = () => ({ order_no: order.order_no, client_name: order.client_name, location_text: order.location_text, when: fmt(order.scheduled_at) });
+  const xls = async () => {
+    if (!d) return;
+    setBusy(true);
+    try { await shareSurveyExcel(meta(), cust, d); } finally { setBusy(false); }
+  };
+  const xlsForQuotation = async () => {
+    if (!d) return;
+    setBusy(true);
+    try { await exportSurveyForQuotation(meta(), cust, d); } finally { setBusy(false); }
   };
 
   return (
@@ -67,11 +80,21 @@ export default function SurveyView({ order }: { order: O }) {
             </>
           )}
           {!edit && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {d && (
                 <button disabled={busy} onClick={pdf} className="flex items-center gap-1 rounded-xl border border-brand px-3 py-2 text-brand">
                   <FileDown size={14} /> {busy ? t('جاري التجهيز...', 'Preparing...') : t('تصدير PDF', 'Export PDF')}
                 </button>
+              )}
+              {d && (
+                <>
+                  <button disabled={busy} onClick={xls} className="flex items-center gap-1 rounded-xl border border-brand px-3 py-2 text-brand">
+                    <FileSpreadsheet size={14} /> {t('مشاركة Excel', 'Share Excel')}
+                  </button>
+                  <button disabled={busy} onClick={xlsForQuotation} className="flex items-center gap-1 rounded-xl border border-brand px-3 py-2 text-brand">
+                    <Send size={14} /> {t('ملف للمقايسة', 'Quotation file')}
+                  </button>
+                </>
               )}
               <button onClick={() => setEdit(true)} className="flex items-center gap-1 rounded-xl border border-navy-600 px-3 py-2"><Pencil size={14} /> {t('تعديل المعاينة', 'Edit survey')}</button>
             </div>
